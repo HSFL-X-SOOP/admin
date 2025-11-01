@@ -1,4 +1,4 @@
-import {Card, CardBody, CardHeader} from "@heroui/card";
+import {Card, CardBody, CardHeader, CardFooter} from "@heroui/card";
 import {Button} from "@heroui/button";
 import {useSession} from "@/context/SessionContext";
 import {useNavigate} from "react-router-dom";
@@ -30,7 +30,7 @@ export default function DashboardPage() {
             title: "System Settings",
             description: "Configure system settings",
             action: () => navigate("/settings"),
-            color: "success" as const,
+            color: "danger" as const,
             icon: "⚙️",
             gradient: "from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50",
             iconColor: "text-green-500"
@@ -86,10 +86,10 @@ export default function DashboardPage() {
                 {stats.map((stat, index) => (
                     <Card
                         key={index}
-                        className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-default-900"
+                        className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200"
                     >
                         <CardBody className="p-5">
-                            <p className="text-sm text-default-700 font-medium mb-2">{stat.label}</p>
+                            <p className="text-sm text-default-800 font-medium mb-2">{stat.label}</p>
                             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
                         </CardBody>
                     </Card>
@@ -104,31 +104,34 @@ export default function DashboardPage() {
                             key={index}
                             isPressable
                             onPress={action.action}
-                            className="border border-default-200 dark:border-default-100 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md"
+                            className="border border-default-200 dark:border-default-100 hover:scale-105 transition-all duration-200 shadow-sm hover:shadow-md bg-default-200"
                         >
                             <CardHeader className="pb-3 pt-5">
                                 <div className="flex items-center gap-3">
                                     <span className={`text-2xl ${action.iconColor}`}>{action.icon}</span>
-                                    <h3 className="font-semibold text-default-800 dark:text-default-100">{action.title}</h3>
+                                    <h3 className="font-semibold text-default-800 dark:text-default-700">{action.title}</h3>
                                 </div>
                             </CardHeader>
                             <CardBody className="pt-0 pb-5">
-                                <p className="text-sm text-default-600 dark:text-default-400 mb-4">{action.description}</p>
+                                <p className="text-sm text-default-700 dark:text-default-700 mb-4">{action.description}</p>
+                            </CardBody>
+                            <CardFooter className="pt-0 pb-3 w-full">
                                 <Button
                                     size="sm"
                                     color={action.color}
                                     variant="flat"
+                                    className="w-full"
                                     onPress={action.action}
                                 >
                                     Open →
                                 </Button>
-                            </CardBody>
+                            </CardFooter>
                         </Card>
                     ))}
                 </div>
             </div>
 
-            <Card className="border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-slate-900">
+            <Card className="border border-default-200 dark:border-default-100 shadow-sm bg-default-200">
                 <CardHeader className="border-b border-default-200 dark:border-default-100">
                     <h2 className="text-xl font-semibold text-default-800">Recent Activity</h2>
                 </CardHeader>
@@ -140,7 +143,7 @@ export default function DashboardPage() {
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 <span className="text-sm font-medium">New sensor registered: Sensor_FL_001</span>
                             </div>
-                            <span className="text-xs text-default-500 font-medium">2 hours ago</span>
+                            <span className="text-xs text-default-700  font-medium">2 hours ago</span>
                         </div>
                         <div
                             className="flex justify-between items-center py-3 px-2 rounded-lg hover:bg-default-100/50 transition-colors border-b border-divider/30">
@@ -148,7 +151,7 @@ export default function DashboardPage() {
                                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                                 <span className="text-sm font-medium">User john.doe@example.com logged in</span>
                             </div>
-                            <span className="text-xs text-default-500 font-medium">5 hours ago</span>
+                            <span className="text-xs text-default-700 font-medium">5 hours ago</span>
                         </div>
                         <div
                             className="flex justify-between items-center py-3 px-2 rounded-lg hover:bg-default-100/50 transition-colors border-b border-divider/30">
@@ -156,7 +159,7 @@ export default function DashboardPage() {
                                 <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                 <span className="text-sm font-medium">System backup completed successfully</span>
                             </div>
-                            <span className="text-xs text-default-500 font-medium">1 day ago</span>
+                            <span className="text-xs text-default-700  font-medium">1 day ago</span>
                         </div>
                         <div
                             className="flex justify-between items-center py-3 px-2 rounded-lg hover:bg-default-100/50 transition-colors">
@@ -164,7 +167,7 @@ export default function DashboardPage() {
                                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                                 <span className="text-sm font-medium">Configuration updated for location Flensburg Harbor</span>
                             </div>
-                            <span className="text-xs text-default-500 font-medium">2 days ago</span>
+                            <span className="text-xs text-default-700  font-medium">2 days ago</span>
                         </div>
                     </div>
                 </CardBody>

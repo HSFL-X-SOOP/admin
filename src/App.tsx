@@ -2,6 +2,8 @@ import {Route, Routes, Navigate} from "react-router-dom";
 import LoginPage from "@/pages/login.tsx";
 import DashboardPage from "@/pages/dashboard.tsx";
 import SensorsPage from "@/pages/sensors.tsx";
+import UsersPage from "@/pages/users.tsx";
+import LogsPage from "@/pages/logs.tsx";
 import {ProtectedRoute} from "@/components/ProtectedRoute";
 import {AdminLayout} from "@/layouts/AdminLayout";
 
@@ -17,6 +19,8 @@ function App() {
             }>
                 <Route path="/dashboard" element={<DashboardPage/>}/>
                 <Route path="/sensors" element={<SensorsPage/>}/>
+                <Route path="/users" element={<UsersPage/>}/>
+                <Route path="/logs" element={<LogsPage/>}/>
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace/>}/>

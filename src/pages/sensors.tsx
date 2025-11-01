@@ -55,22 +55,34 @@ export default function SensorsPage() {
         }
     };
 
-    const handleToggleSensor = useCallback(async (sensorId: number) => {
+    const handleToggleRequest = useCallback((sensor: PotentialSensorDTO) => {
+        setSelectedSensor(sensor);
+        onOpen();
+    }, [onOpen]);
+
+    const handleConfirmToggle = useCallback(async () => {
+        if (!selectedSensor?.id) return;
+
+        setIsConfirming(true);
         try {
-            const updatedSensors = await sensorsService.toggleSensorActive(sensorId);
+            const updatedSensors = await sensorsService.toggleSensorActive(selectedSensor.id);
             setSensors(updatedSensors);
 
-            const sensor = updatedSensors.find(s => s.id === sensorId);
+            const sensor = updatedSensors.find(s => s.id === selectedSensor.id);
             if (sensor) {
                 toast.showSuccess(
                     `Sensor ${sensor.name} ${sensor.isActive ? 'activated' : 'deactivated'}`
                 );
             }
+            onClose();
         } catch (error) {
             console.error("Failed to toggle sensor:", error);
             toast.showError("Failed to toggle sensor status");
+        } finally {
+            setIsConfirming(false);
+            setSelectedSensor(null);
         }
-    }, [toast]);
+    }, [selectedSensor, toast, onClose]);
 
     const filteredSensors = useMemo(() => {
         if (!filterValue) return sensors;
@@ -143,7 +155,7 @@ export default function SensorsPage() {
                             <Switch
                                 size="sm"
                                 isSelected={sensor.isActive || false}
-                                onValueChange={() => sensor.id && handleToggleSensor(sensor.id)}
+                                onValueChange={() => handleToggleRequest(sensor)}
                             />
                         </Tooltip>
                     </div>
@@ -151,7 +163,7 @@ export default function SensorsPage() {
             default:
                 return null;
         }
-    }, [handleToggleSensor]);
+    }, [handleToggleRequest]);
 
     const topContent = useMemo(() => {
         return (
@@ -291,6 +303,55 @@ export default function SensorsPage() {
                     )}
                 </TableBody>
             </Table>
+
+            <Modal
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
+                placement="center"
+                backdrop="blur"
+            >
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1">
+                                Confirm Sensor Status Change
+                            </ModalHeader>
+                            <ModalBody>
+                                <p>
+                                    Are you sure you want to {selectedSensor?.isActive ? 'deactivate' : 'activate'} the sensor{' '}
+                                    <strong>{selectedSensor?.name || 'Unknown'}</strong>?
+                                </p>
+                                {selectedSensor?.isActive ? (
+                                    <p className="text-warning text-sm mt-2">
+                                        Deactivating this sensor will stop all measurements and data collection.
+                                    </p>
+                                ) : (
+                                    <p className="text-success text-sm mt-2">
+                                        Activating this sensor will resume measurements and data collection.
+                                    </p>
+                                )}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button
+                                    color="default"
+                                    variant="light"
+                                    onPress={onClose}
+                                    isDisabled={isConfirming}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    color={selectedSensor?.isActive ? "danger" : "success"}
+                                    onPress={handleConfirmToggle}
+                                    isLoading={isConfirming}
+                                >
+                                    {selectedSensor?.isActive ? 'Deactivate' : 'Activate'}
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
         </div>
     );
 }
