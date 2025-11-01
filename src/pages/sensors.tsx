@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import {useEffect, useState, useCallback, useMemo} from "react";
 import {
     Table,
     TableHeader,
@@ -7,13 +7,13 @@ import {
     TableRow,
     TableCell
 } from "@heroui/table";
-import { Chip } from "@heroui/chip";
-import { Tooltip } from "@heroui/tooltip";
-import { Switch } from "@heroui/switch";
-import { Spinner } from "@heroui/spinner";
-import { Pagination } from "@heroui/pagination";
-import { Input } from "@heroui/input";
-import { Button } from "@heroui/button";
+import {Chip} from "@heroui/chip";
+import {Tooltip} from "@heroui/tooltip";
+import {Switch} from "@heroui/switch";
+import {Spinner} from "@heroui/spinner";
+import {Pagination} from "@heroui/pagination";
+import {Input} from "@heroui/input";
+import {Button} from "@heroui/button";
 import {
     Modal,
     ModalContent,
@@ -22,10 +22,10 @@ import {
     ModalFooter,
     useDisclosure
 } from "@heroui/modal";
-import { SearchIcon } from "@/components/icons";
-import { useToast } from "@/hooks/useToast";
+import {SearchIcon} from "@/components/icons";
+import {useToast} from "@/hooks/useToast";
 import sensorsService from "@/api/services/sensors";
-import { PotentialSensorDTO } from "@/api/models/sensors";
+import {PotentialSensorDTO} from "@/api/models/sensors";
 
 export default function SensorsPage() {
     const [sensors, setSensors] = useState<PotentialSensorDTO[]>([]);
@@ -35,7 +35,7 @@ export default function SensorsPage() {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [selectedSensor, setSelectedSensor] = useState<PotentialSensorDTO | null>(null);
     const [isConfirming, setIsConfirming] = useState(false);
-    const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+    const {isOpen, onOpen, onOpenChange, onClose} = useDisclosure();
     const toast = useToast();
 
     useEffect(() => {
@@ -173,7 +173,7 @@ export default function SensorsPage() {
                         isClearable
                         className="w-full sm:max-w-[44%]"
                         placeholder="Search by name or description..."
-                        startContent={<SearchIcon />}
+                        startContent={<SearchIcon/>}
                         value={filterValue}
                         onClear={() => onClear()}
                         onValueChange={onSearchChange}
@@ -254,10 +254,10 @@ export default function SensorsPage() {
     }, [page, pages, filteredSensors.length, rowsPerPage]);
 
     const columns = [
-        { key: "name", label: "SENSOR NAME" },
-        { key: "description", label: "DESCRIPTION" },
-        { key: "status", label: "STATUS" },
-        { key: "actions", label: "ACTIONS" },
+        {key: "name", label: "SENSOR NAME"},
+        {key: "description", label: "DESCRIPTION"},
+        {key: "status", label: "STATUS"},
+        {key: "actions", label: "ACTIONS"},
     ];
 
     return (
@@ -294,7 +294,7 @@ export default function SensorsPage() {
                     emptyContent={isLoading ? " " : "No sensors found"}
                     items={paginatedSensors}
                     isLoading={isLoading}
-                    loadingContent={<Spinner label="Loading sensors..." />}
+                    loadingContent={<Spinner label="Loading sensors..."/>}
                 >
                     {(item) => (
                         <TableRow key={item.id || Math.random()}>
@@ -322,7 +322,8 @@ export default function SensorsPage() {
                             </ModalHeader>
                             <ModalBody>
                                 <p>
-                                    Are you sure you want to {selectedSensor?.isActive ? 'deactivate' : 'activate'} the sensor{' '}
+                                    Are you sure you want to {selectedSensor?.isActive ? 'deactivate' : 'activate'} the
+                                    sensor{' '}
                                     <strong>{selectedSensor?.name || 'Unknown'}</strong>?
                                 </p>
                                 {selectedSensor?.isActive ? (
