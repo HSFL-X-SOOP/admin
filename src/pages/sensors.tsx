@@ -262,9 +262,9 @@ export default function SensorsPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold mb-2">Potential Sensors Management</h1>
-                <p className="text-default-500">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2">Potential Sensors Management</h1>
+                <p className="text-default-800">
                     Manage and monitor all potential sensors in the system
                 </p>
             </div>
@@ -275,7 +275,7 @@ export default function SensorsPage() {
                 bottomContent={bottomContent}
                 bottomContentPlacement="outside"
                 classNames={{
-                    wrapper: "max-h-[600px]",
+                    wrapper: "max-h-[600px] border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-default-900",
                 }}
                 topContent={topContent}
                 topContentPlacement="outside"
@@ -309,6 +309,10 @@ export default function SensorsPage() {
                 onOpenChange={onOpenChange}
                 placement="center"
                 backdrop="blur"
+                classNames={{
+                    backdrop: "bg-black/50",
+                    base: "border border-default-200 dark:border-default-100 bg-white dark:bg-slate-900"
+                }}
             >
                 <ModalContent>
                     {(onClose) => (

@@ -359,9 +359,9 @@ export default function LogsPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold mb-2">System Logs</h1>
-                <p className="text-default-500">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2">System Logs</h1>
+                <p className="text-default-800">
                     Monitor and analyze logs from all system components
                 </p>
             </div>
@@ -374,11 +374,11 @@ export default function LogsPage() {
                             key={system}
                             isPressable
                             onPress={() => setSelectedTab(system)}
-                            className={`border ${selectedTab === system ? 'border-primary' : 'border-default-200'}`}
+                            className={`border ${selectedTab === system ? 'border-primary shadow-md' : 'border-default-200 dark:border-default-100'} hover:shadow-md transition-shadow bg-white dark:bg-default-900`}
                         >
                             <CardBody className="p-4">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-semibold capitalize">{system}</h3>
+                                    <h3 className="font-semibold capitalize text-default-800">{system}</h3>
                                     <Chip size="sm" variant="flat">
                                         {stats.total}
                                     </Chip>
@@ -401,7 +401,7 @@ export default function LogsPage() {
                 })}
             </div>
 
-            <Card className="border border-default-200">
+            <Card className="border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-slate-900">
                 <CardBody className="p-0">
                     <Tabs
                         selectedKey={selectedTab}
@@ -422,7 +422,7 @@ export default function LogsPage() {
                     <div className="px-6 pb-4">
                         <div className="space-y-2">
                             {paginatedLogs.map((log) => (
-                                <Card key={log.id} className="border border-default-100">
+                                <Card key={log.id} className="border border-default-200 dark:border-default-100 hover:shadow-sm transition-shadow bg-white dark:bg-default-900">
                                     <CardBody className="p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex items-center gap-3">

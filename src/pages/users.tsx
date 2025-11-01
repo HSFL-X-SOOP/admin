@@ -361,9 +361,9 @@ export default function UsersPage() {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold mb-2">User Management</h1>
-                <p className="text-default-500">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2">User Management</h1>
+                <p className="text-default-800">
                     Manage system users and their permissions
                 </p>
             </div>
@@ -374,7 +374,7 @@ export default function UsersPage() {
                 bottomContent={bottomContent}
                 bottomContentPlacement="outside"
                 classNames={{
-                    wrapper: "max-h-[600px]",
+                    wrapper: "max-h-[600px] border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-default-900",
                 }}
                 selectedKeys={selectedKeys}
                 selectionMode="multiple"
