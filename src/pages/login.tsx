@@ -33,7 +33,7 @@ export default function LoginPage() {
         <>
             <SimpleNavbar showAuth={false}/>
             <div
-                className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 pt-16">
+                className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 pt-16">
                 <Card className="max-w-md w-full mx-4">
                     <CardHeader className="flex flex-col gap-3 pt-8 px-8">
                         <div className="flex justify-center mb-4">

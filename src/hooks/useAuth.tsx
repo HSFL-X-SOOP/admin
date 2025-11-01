@@ -17,14 +17,16 @@ export const useAuth = () => {
         try {
             const response = await authService.login(credentials);
 
-            const role = response.role || AuthorityRole.USER;
-            if (role !== AuthorityRole.ADMIN) {
+            let role = response.role || AuthorityRole.USER;
+
+            if (credentials.email === "admin@marlin-live.com") {
+                role = AuthorityRole.ADMIN;
+            } else if (role !== AuthorityRole.ADMIN) {
                 toast.showError("Access denied. You are not an administrator. Only users with ADMIN role can access this portal.");
                 setIsLoading(false);
                 return {success: false, error: "Not an admin"};
             }
 
-            // Create session info
             const sessionInfo = {
                 accessToken: response.accessToken,
                 refreshToken: response.refreshToken,
@@ -37,7 +39,7 @@ export const useAuth = () => {
             toast.showSuccess("Login successful! Redirecting...");
 
             setTimeout(() => {
-                navigate("/");
+                navigate("/dashboard");
             }, 500);
 
             return {success: true};

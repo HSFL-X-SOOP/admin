@@ -3,10 +3,9 @@ import {SimpleNavbar} from "@/components/simple-navbar";
 
 export function AdminLayout() {
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
             <SimpleNavbar showAuth={true}/>
 
-            {/* Main content area with padding for navbar */}
             <main className="pt-16 min-h-screen">
                 <Outlet/>
             </main>

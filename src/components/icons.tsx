@@ -191,28 +191,6 @@ export const EyeFilledIcon = ({
     </svg>
 );
 
-export const EyeSlashFilledIcon = ({
-                                       size = 24,
-                                       width,
-                                       height,
-                                       ...props
-                                   }: IconSvgProps) => (
-    <svg
-        aria-hidden="true"
-        focusable="false"
-        height={size || height}
-        role="presentation"
-        viewBox="0 0 24 24"
-        width={size || width}
-        {...props}
-    >
-        <path
-            d="M21.53 2.47a.75.75 0 0 0-1.06 0l-3.3 3.3C15.65 5.28 13.87 5 12 5 7 5 2.73 8.11 1 12c.87 1.96 2.26 3.63 4 4.88l-2.41 2.41a.75.75 0 1 0 1.06 1.06l18-18a.75.75 0 0 0-.12-1.18ZM12 17c-1.05 0-2.05-.18-2.96-.5l1.74-1.74a3 3 0 0 0 3.96-3.96l2.13-2.13C18.93 9.63 20.27 10.7 21 12c-1.73 3.89-6 7-11 7a11.89 11.89 0 0 1-2.48-.27l1.63-1.63A9.46 9.46 0 0 0 12 17Zm0-10a9.63 9.63 0 0 1 2.48.33L13 8.8a3 3 0 0 0-3.4 3.4l-2.28 2.28A9.38 9.38 0 0 1 3 12c1.73-3.89 6-7 11-7Z"
-            fill="currentColor"
-        />
-    </svg>
-);
-
 export const SearchIcon = (props: IconSvgProps) => (
     <svg
         aria-hidden="true"
@@ -237,6 +215,28 @@ export const SearchIcon = (props: IconSvgProps) => (
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="2"
+        />
+    </svg>
+);
+
+export const EyeSlashFilledIcon = ({
+                                       size = 24,
+                                       width,
+                                       height,
+                                       ...props
+                                   }: IconSvgProps) => (
+    <svg
+        aria-hidden="true"
+        focusable="false"
+        height={size || height}
+        role="presentation"
+        viewBox="0 0 24 24"
+        width={size || width}
+        {...props}
+    >
+        <path
+            d="M21.53 2.47a.75.75 0 0 0-1.06 0l-3.3 3.3C15.65 5.28 13.87 5 12 5 7 5 2.73 8.11 1 12c.87 1.96 2.26 3.63 4 4.88l-2.41 2.41a.75.75 0 1 0 1.06 1.06l18-18a.75.75 0 0 0-.12-1.18ZM12 17c-1.05 0-2.05-.18-2.96-.5l1.74-1.74a3 3 0 0 0 3.96-3.96l2.13-2.13C18.93 9.63 20.27 10.7 21 12c-1.73 3.89-6 7-11 7a11.89 11.89 0 0 1-2.48-.27l1.63-1.63A9.46 9.46 0 0 0 12 17Zm0-10a9.63 9.63 0 0 1 2.48.33L13 8.8a3 3 0 0 0-3.4 3.4l-2.28 2.28A9.38 9.38 0 0 1 3 12c1.73-3.89 6-7 11-7Z"
+            fill="currentColor"
         />
     </svg>
 );

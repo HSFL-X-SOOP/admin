@@ -1,4 +1,3 @@
-// Auth Models
 export interface LoginRequest {
     email: string;
     password: string;
@@ -15,7 +14,6 @@ export interface LoginResponse {
     role?: AuthorityRole | null;
 }
 
-// Profile and Role Models
 export enum AuthorityRole {
     ADMIN = "ADMIN",
     USER = "USER",

@@ -10,7 +10,6 @@ export function ProtectedRoute({children, requireAdmin = true}: ProtectedRoutePr
     const {session, isAdmin} = useSession();
     const location = useLocation();
 
-    // Check if there's a session
     if (!session) {
         return <Navigate to="/login" state={{from: location}} replace/>;
     }
@@ -25,6 +24,5 @@ export function ProtectedRoute({children, requireAdmin = true}: ProtectedRoutePr
         );
     }
 
-    // All checks passed, render the protected content
     return <>{children}</>;
 }

@@ -1,4 +1,12 @@
-import {Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenu, NavbarMenuItem, NavbarMenuToggle} from "@heroui/navbar";
+import {
+    Navbar,
+    NavbarBrand,
+    NavbarContent,
+    NavbarItem,
+    NavbarMenu,
+    NavbarMenuItem,
+    NavbarMenuToggle
+} from "@heroui/navbar";
 import {ThemeSwitch} from "@/components/theme-switch";
 import {Logo} from "@/components/icons.tsx";
 import {Button} from "@heroui/button";
@@ -11,14 +19,14 @@ interface SimpleNavbarProps {
     showAuth?: boolean;
 }
 
-export const SimpleNavbar = ({ showAuth = false }: SimpleNavbarProps) => {
+export const SimpleNavbar = ({showAuth = false}: SimpleNavbarProps) => {
     const {logout, session} = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
 
     const menuItems = [
-        {label: "Dashboard", href: "/"},
+        {label: "Dashboard", href: "/dashboard"},
         {label: "Sensors", href: "/sensors"},
         {label: "Users", href: "/users"},
         {label: "Settings", href: "/settings"},
@@ -34,7 +42,7 @@ export const SimpleNavbar = ({ showAuth = false }: SimpleNavbarProps) => {
             isBordered
             isMenuOpen={isMenuOpen}
             onMenuOpenChange={setIsMenuOpen}
-            className="fixed top-0"
+            className="fixed top-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md"
             maxWidth="full"
         >
             <NavbarContent>
