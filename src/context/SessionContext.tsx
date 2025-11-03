@@ -1,5 +1,5 @@
 import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
-import {AuthorityRole} from '@/api/models/auth';
+import {AuthorityRole} from "@/api/models/auth";
 
 export interface SessionInfo {
     accessToken: string;

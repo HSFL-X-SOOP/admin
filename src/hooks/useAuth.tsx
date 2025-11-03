@@ -2,7 +2,8 @@ import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useSession} from "@/context/SessionContext";
 import authService from "@/api/services/auth";
-import {AuthorityRole, LoginRequest} from "@/api/models/auth";
+import {LoginRequest} from "@/api/models/auth";
+import {AuthorityRole} from "@/api/models/auth";
 import {useToast} from "@/hooks/useToast";
 
 export const useAuth = () => {
@@ -17,8 +18,12 @@ export const useAuth = () => {
         try {
             const response = await authService.login(credentials);
 
-            let role = response.role || AuthorityRole.USER;
+            console.log("Login response:", response);
 
+            // Extract role from the profile if available, otherwise determine from email
+            let role = response.profile?.authorityRole ?? AuthorityRole.USER;
+
+            // Special handling for hardcoded admin email
             if (credentials.email === "admin@marlin-live.com") {
                 role = AuthorityRole.ADMIN;
             } else if (role !== AuthorityRole.ADMIN) {
@@ -29,7 +34,7 @@ export const useAuth = () => {
 
             const sessionInfo = {
                 accessToken: response.accessToken,
-                refreshToken: response.refreshToken,
+                refreshToken: response.refreshToken || null,
                 loggedInSince: new Date(),
                 role: role,
                 lastTokenRefresh: null,

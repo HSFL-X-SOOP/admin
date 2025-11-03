@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import {useState, useCallback, useMemo} from "react";
+import type {Selection, Key} from "@react-types/shared";
 import {
     Table,
     TableHeader,
@@ -7,14 +8,14 @@ import {
     TableRow,
     TableCell
 } from "@heroui/table";
-import { Chip } from "@heroui/chip";
-import { User } from "@heroui/user";
-import { Tooltip } from "@heroui/tooltip";
-import { Pagination } from "@heroui/pagination";
-import { Input } from "@heroui/input";
-import { Button } from "@heroui/button";
-import { SearchIcon } from "@/components/icons";
-import { AuthorityRole } from "@/api/models/auth";
+import {Chip} from "@heroui/chip";
+import {User} from "@heroui/user";
+import {Tooltip} from "@heroui/tooltip";
+import {Pagination} from "@heroui/pagination";
+import {Input} from "@heroui/input";
+import {Button} from "@heroui/button";
+import {SearchIcon} from "@/components/icons";
+import {AuthorityRole} from "@/api/models/auth";
 
 interface UserData {
     id: number;
@@ -112,7 +113,7 @@ const mockUsers: UserData[] = [
 
 export default function UsersPage() {
     const [filterValue, setFilterValue] = useState("");
-    const [selectedKeys, setSelectedKeys] = useState(new Set([]));
+    const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [statusFilter, setStatusFilter] = useState("all");
@@ -169,7 +170,7 @@ export default function UsersPage() {
             case "user":
                 return (
                     <User
-                        avatarProps={{ radius: "full", size: "sm", src: user.avatar }}
+                        avatarProps={{radius: "full", size: "sm", src: user.avatar}}
                         classNames={{
                             description: "text-default-400"
                         }}
@@ -256,7 +257,7 @@ export default function UsersPage() {
                         isClearable
                         className="w-full sm:max-w-[44%]"
                         placeholder="Search by name or email..."
-                        startContent={<SearchIcon />}
+                        startContent={<SearchIcon/>}
                         value={filterValue}
                         onClear={() => onClear()}
                         onValueChange={onSearchChange}
@@ -279,7 +280,7 @@ export default function UsersPage() {
                         >
                             <option value="all">All Roles</option>
                             <option value={AuthorityRole.ADMIN}>Admin</option>
-                            <option value={AuthorityRole.HARBOURMASTER}>Harbourmaster</option>
+                            <option value={AuthorityRole.HARBOURMASTER}>Harbor Master</option>
                             <option value={AuthorityRole.USER}>User</option>
                         </select>
                         <Button color="primary" size="md">
@@ -312,13 +313,12 @@ export default function UsersPage() {
     }, [filterValue, onSearchChange, onClear, filteredUsers.length, rowsPerPage, statusFilter, roleFilter]);
 
     const bottomContent = useMemo(() => {
+        const selectedCount = selectedKeys === "all" ? filteredUsers.length : selectedKeys.size;
+        const selectionMessage = selectedCount === 0 ? "" : `${selectedCount} of ${filteredUsers.length} selected`;
+
         return (
             <div className="py-2 px-2 flex justify-between items-center">
-                <span className="w-[30%] text-small text-default-400">
-                    {selectedKeys.size === 0
-                        ? ""
-                        : `${selectedKeys.size} of ${filteredUsers.length} selected`}
-                </span>
+                <span className="w-[30%] text-small text-default-400">{selectionMessage}</span>
                 <Pagination
                     isCompact
                     showControls
@@ -348,15 +348,15 @@ export default function UsersPage() {
                 </div>
             </div>
         );
-    }, [page, pages, selectedKeys.size, filteredUsers.length]);
+    }, [page, pages, selectedKeys, filteredUsers.length]);
 
     const columns = [
-        { key: "user", label: "USER" },
-        { key: "role", label: "ROLE" },
-        { key: "status", label: "STATUS" },
-        { key: "joinDate", label: "JOIN DATE" },
-        { key: "lastLogin", label: "LAST LOGIN" },
-        { key: "actions", label: "ACTIONS" }
+        {key: "user", label: "USER"},
+        {key: "role", label: "ROLE"},
+        {key: "status", label: "STATUS"},
+        {key: "joinDate", label: "JOIN DATE"},
+        {key: "lastLogin", label: "LAST LOGIN"},
+        {key: "actions", label: "ACTIONS"}
     ];
 
     return (

@@ -10,8 +10,12 @@ export interface RefreshTokenRequest {
 
 export interface LoginResponse {
     accessToken: string;
-    refreshToken: string | null;
-    role?: AuthorityRole | null;
+    refreshToken?: string | null;
+    profile?: UserProfile | null;
+}
+
+export interface UserProfile {
+    authorityRole: AuthorityRole;
 }
 
 export enum AuthorityRole {
