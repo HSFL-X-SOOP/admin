@@ -1,4 +1,4 @@
-import {useEffect, useState, useCallback, useMemo} from "react";
+import {useState, useCallback, useMemo} from "react";
 import {
     Table,
     TableHeader,
@@ -23,37 +23,26 @@ import {
     useDisclosure
 } from "@heroui/modal";
 import {SearchIcon} from "@/components/icons";
-import {useToast} from "@/hooks/useToast";
-import sensorsService from "@/api/services/sensors";
 import {PotentialSensorDTO} from "@/api/models/sensors";
+import {useSensors} from "@/hooks/useSensors";
 
 export default function SensorsPage() {
-    const [sensors, setSensors] = useState<PotentialSensorDTO[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const {
+        sensors,
+        isLoading,
+        activeCount,
+        inactiveCount,
+        totalCount,
+        toggleSensorStatus,
+        searchSensors
+    } = useSensors();
+
     const [filterValue, setFilterValue] = useState("");
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [selectedSensor, setSelectedSensor] = useState<PotentialSensorDTO | null>(null);
     const [isConfirming, setIsConfirming] = useState(false);
     const {isOpen, onOpen, onOpenChange, onClose} = useDisclosure();
-    const toast = useToast();
-
-    useEffect(() => {
-        loadSensors();
-    }, []);
-
-    const loadSensors = async () => {
-        try {
-            setIsLoading(true);
-            const data = await sensorsService.getPotentialSensors();
-            setSensors(data);
-        } catch (error) {
-            console.error("Failed to load sensors:", error);
-            toast.showError("Failed to load sensors");
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleToggleRequest = useCallback((sensor: PotentialSensorDTO) => {
         setSelectedSensor(sensor);
@@ -64,37 +53,20 @@ export default function SensorsPage() {
         if (!selectedSensor?.id) return;
 
         setIsConfirming(true);
-        try {
-            const updatedSensors = await sensorsService.toggleSensorActive(selectedSensor.id);
-            setSensors(updatedSensors);
+        const result = await toggleSensorStatus(selectedSensor.id);
 
-            const sensor = updatedSensors.find(s => s.id === selectedSensor.id);
-            if (sensor) {
-                toast.showSuccess(
-                    `Sensor ${sensor.name} ${sensor.isActive ? 'activated' : 'deactivated'}`
-                );
-            }
+        if (result.success) {
             onClose();
-        } catch (error) {
-            console.error("Failed to toggle sensor:", error);
-            toast.showError("Failed to toggle sensor status");
-        } finally {
-            setIsConfirming(false);
-            setSelectedSensor(null);
         }
-    }, [selectedSensor, toast, onClose]);
+
+        setIsConfirming(false);
+        setSelectedSensor(null);
+    }, [selectedSensor, toggleSensorStatus, onClose]);
 
     const filteredSensors = useMemo(() => {
         if (!filterValue) return sensors;
-
-        return sensors.filter((sensor) => {
-            const searchLower = filterValue.toLowerCase();
-            return (
-                sensor.name?.toLowerCase().includes(searchLower) ||
-                sensor.description?.toLowerCase().includes(searchLower)
-            );
-        });
-    }, [sensors, filterValue]);
+        return searchSensors(filterValue);
+    }, [sensors, filterValue, searchSensors]);
 
     const paginatedSensors = useMemo(() => {
         const start = (page - 1) * rowsPerPage;
@@ -124,7 +96,7 @@ export default function SensorsPage() {
                 return (
                     <div className="flex flex-col">
                         <p className="text-bold text-sm capitalize">{sensor.name || "Unknown"}</p>
-                        <p className="text-bold text-sm capitalize text-default-400">
+                        <p className="text-bold text-sm capitalize text-default-700">
                             ID: {sensor.id || "N/A"}
                         </p>
                     </div>
@@ -132,7 +104,7 @@ export default function SensorsPage() {
             case "description":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-sm text-default-600">
+                        <p className="text-sm text-default-800">
                             {sensor.description || "No description available"}
                         </p>
                     </div>
@@ -180,21 +152,24 @@ export default function SensorsPage() {
                     />
                     <div className="flex gap-3">
                         <Chip color="primary" variant="flat">
-                            Total: {sensors.length}
+                            Total: {totalCount}
                         </Chip>
                         <Chip color="success" variant="flat">
-                            Active: {sensors.filter(s => s.isActive).length}
+                            Active: {activeCount}
+                        </Chip>
+                        <Chip color="danger" variant="flat">
+                            Inactive: {inactiveCount}
                         </Chip>
                     </div>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-default-400 text-small">
+                    <span className="text-default-800 text-small">
                         Total {filteredSensors.length} sensors
                     </span>
-                    <label className="flex items-center text-default-400 text-small">
+                    <label className="flex items-center text-default-800 text-small">
                         Rows per page:
                         <select
-                            className="bg-transparent outline-none text-default-400 text-small ml-2"
+                            className="bg-transparent outline-none text-default-800 text-small ml-2"
                             onChange={(e) => {
                                 setRowsPerPage(Number(e.target.value));
                                 setPage(1);
@@ -211,12 +186,12 @@ export default function SensorsPage() {
                 </div>
             </div>
         );
-    }, [filterValue, onSearchChange, onClear, sensors, filteredSensors.length, rowsPerPage]);
+    }, [filterValue, onSearchChange, onClear, totalCount, activeCount, inactiveCount, filteredSensors.length, rowsPerPage]);
 
     const bottomContent = useMemo(() => {
         return (
             <div className="py-2 px-2 flex justify-between items-center">
-                <span className="w-[30%] text-small text-default-400">
+                <span className="w-[30%] text-small text-default-800">
                     {filteredSensors.length > 0
                         ? `${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, filteredSensors.length)} of ${filteredSensors.length}`
                         : "0 sensors"
@@ -235,7 +210,9 @@ export default function SensorsPage() {
                     <Button
                         isDisabled={page === 1}
                         size="sm"
+                        color={"default"}
                         variant="flat"
+                        className={"text-default-800 text-bold"}
                         onPress={() => setPage(page - 1)}
                     >
                         Previous
@@ -243,7 +220,9 @@ export default function SensorsPage() {
                     <Button
                         isDisabled={page === pages || pages === 0}
                         size="sm"
+                        color={"primary"}
                         variant="flat"
+                        className={"text-default-800 text-bold"}
                         onPress={() => setPage(page + 1)}
                     >
                         Next
@@ -261,7 +240,7 @@ export default function SensorsPage() {
     ];
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="mx-24 px-4 py-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2">Potential Sensors Management</h1>
                 <p className="text-default-800">
@@ -275,7 +254,7 @@ export default function SensorsPage() {
                 bottomContent={bottomContent}
                 bottomContentPlacement="outside"
                 classNames={{
-                    wrapper: "max-h-[600px] border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-default-900",
+                    wrapper: "max-h-[800px] border border-default-200 dark:border-default-100 shadow-sm bg-default-200",
                 }}
                 topContent={topContent}
                 topContentPlacement="outside"

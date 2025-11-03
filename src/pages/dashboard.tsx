@@ -14,16 +14,16 @@ export default function DashboardPage() {
             action: () => navigate("/sensors"),
             color: "primary" as const,
             icon: "🔧",
-            gradient: "from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50",
+            className: "",
             iconColor: "text-blue-500"
         },
         {
             title: "User Management",
             description: "Manage user accounts and permissions",
             action: () => navigate("/users"),
-            color: "secondary" as const,
+            color: undefined,
             icon: "👥",
-            gradient: "from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50",
+            className: "bg-secondary-200 text-secondary-800",
             iconColor: "text-purple-500"
         },
         {
@@ -32,7 +32,7 @@ export default function DashboardPage() {
             action: () => navigate("/settings"),
             color: "danger" as const,
             icon: "⚙️",
-            gradient: "from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50",
+            className: "",
             iconColor: "text-green-500"
         },
         {
@@ -41,7 +41,7 @@ export default function DashboardPage() {
             action: () => navigate("/logs"),
             color: "warning" as const,
             icon: "📊",
-            gradient: "from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50",
+            className: "",
             iconColor: "text-amber-500"
         },
     ];
@@ -120,7 +120,7 @@ export default function DashboardPage() {
                                     size="sm"
                                     color={action.color}
                                     variant="flat"
-                                    className="w-full"
+                                    className={"w-full" + (action.className ? ` ${action.className}` : "")}
                                     onPress={action.action}
                                 >
                                     Open →
