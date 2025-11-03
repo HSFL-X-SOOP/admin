@@ -20,13 +20,9 @@ export const useAuth = () => {
 
             console.log("Login response:", response);
 
-            // Extract role from the profile if available, otherwise determine from email
             let role = response.profile?.authorityRole ?? AuthorityRole.USER;
-
-            // Special handling for hardcoded admin email
-            if (credentials.email === "admin@marlin-live.com") {
-                role = AuthorityRole.ADMIN;
-            } else if (role !== AuthorityRole.ADMIN) {
+            
+            if (role !== AuthorityRole.ADMIN) {
                 toast.showError("Access denied. You are not an administrator. Only users with ADMIN role can access this portal.");
                 setIsLoading(false);
                 return {success: false, error: "Not an admin"};
