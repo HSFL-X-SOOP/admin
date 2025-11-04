@@ -2,14 +2,12 @@ import {Card, CardBody, CardHeader, CardFooter} from "@heroui/card";
 import {Button} from "@heroui/button";
 import {useSession} from "@/context/SessionContext";
 import {useNavigate} from "react-router-dom";
-import {useLocations} from "@/hooks/useLocations";
-import {useSensors} from "@/hooks/useSensors";
+import {useDashboard} from "@/hooks/useDashboard";
 
 export default function DashboardPage() {
     const {session} = useSession();
     const navigate = useNavigate();
-    const {totalCount: locationsCount} = useLocations();
-    const {activeCount: activeSensorsCount} = useSensors();
+    const {dashboardInfo, isLoading} = useDashboard();
 
     const quickActions = [
         {
@@ -62,25 +60,25 @@ export default function DashboardPage() {
     const stats = [
         {
             label: "Total Users",
-            value: "1,234",
+            value: isLoading ? "..." : dashboardInfo?.totalUsers.toString() ?? "0",
             color: "text-blue-600",
             bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
         },
         {
-            label: "Active Sensors",
-            value: activeSensorsCount.toString(),
+            label: "Total Sensors",
+            value: isLoading ? "..." : dashboardInfo?.totalSensors.toString() ?? "0",
             color: "text-green-600",
             bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
         },
         {
-            label: "Measurements Today",
-            value: "8,901",
+            label: "Total Measurements",
+            value: isLoading ? "..." : dashboardInfo?.totalMeasurements.toString() ?? "0",
             color: "text-purple-600",
             bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
         },
         {
-            label: "Locations",
-            value: locationsCount.toString(),
+            label: "Total Locations",
+            value: isLoading ? "..." : dashboardInfo?.totalLocations.toString() ?? "0",
             color: "text-red-600",
             bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
         },

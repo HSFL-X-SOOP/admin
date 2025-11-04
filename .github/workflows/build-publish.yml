@@ -1,0 +1,42 @@
+name: CI – Build & Deploy Project-Site to Release Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    env:
+      SERVER_IP: ${{ secrets.SERVER_IP }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      DEPLOY_KEY: ${{ secrets.MARLIN_DEPLOY_KEY }}
+      DEPLOY_PATH: ${{ secrets.MARLIN_ADMIN_DEPLOY_PATH }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build artifacts
+        run: npm run build
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ env.DEPLOY_KEY }}" > ~/.ssh/marlin_deploy_key
+          chmod 600 ~/.ssh/marlin_deploy_key
+          ssh-keyscan -H ${{ env.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Copy build artifacts to release server
+        run: |
+          scp -i ~/.ssh/marlin_deploy_key -r dist/* ${{ env.SERVER_USER }}@${{ env.SERVER_IP }}:${{ env.DEPLOY_PATH }}
