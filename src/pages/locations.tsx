@@ -9,7 +9,6 @@ import {
 } from "@heroui/table";
 import {Chip} from "@heroui/chip";
 import {Tooltip} from "@heroui/tooltip";
-import {Switch} from "@heroui/switch";
 import {Spinner} from "@heroui/spinner";
 import {Pagination} from "@heroui/pagination";
 import {Input} from "@heroui/input";
@@ -23,58 +22,42 @@ import {
     useDisclosure
 } from "@heroui/modal";
 import {SearchIcon} from "@/components/icons";
-import {PotentialSensorDTO} from "@/api/models/sensors";
-import {useSensors} from "@/hooks/useSensors";
+import {LocationDTO} from "@/api/models/locations";
+import {useLocations} from "@/hooks/useLocations";
 
-export default function SensorsPage() {
+export default function LocationsPage() {
     const {
-        sensors,
+        locations,
         isLoading,
-        activeCount,
-        inactiveCount,
         totalCount,
-        toggleSensorStatus,
-        searchSensors
-    } = useSensors();
+        locationsWithCoordinates,
+        searchLocations,
+        hasValidCoordinates,
+    } = useLocations();
 
     const [filterValue, setFilterValue] = useState("");
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [selectedSensor, setSelectedSensor] = useState<PotentialSensorDTO | null>(null);
-    const [isConfirming, setIsConfirming] = useState(false);
-    const {isOpen, onOpen, onOpenChange, onClose} = useDisclosure();
+    const [selectedLocation, setSelectedLocation] = useState<LocationDTO | null>(null);
+    const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
-    const handleToggleRequest = useCallback((sensor: PotentialSensorDTO) => {
-        setSelectedSensor(sensor);
+    const handleViewDetails = useCallback((location: LocationDTO) => {
+        setSelectedLocation(location);
         onOpen();
     }, [onOpen]);
 
-    const handleConfirmToggle = useCallback(async () => {
-        if (!selectedSensor?.id) return;
+    const filteredLocations = useMemo(() => {
+        if (!filterValue) return locations;
+        return searchLocations(filterValue);
+    }, [locations, filterValue, searchLocations]);
 
-        setIsConfirming(true);
-        const result = await toggleSensorStatus(selectedSensor.id);
-
-        if (result.success) {
-            onClose();
-        }
-
-        setIsConfirming(false);
-        setSelectedSensor(null);
-    }, [selectedSensor, toggleSensorStatus, onClose]);
-
-    const filteredSensors = useMemo(() => {
-        if (!filterValue) return sensors;
-        return searchSensors(filterValue);
-    }, [sensors, filterValue, searchSensors]);
-
-    const paginatedSensors = useMemo(() => {
+    const paginatedLocations = useMemo(() => {
         const start = (page - 1) * rowsPerPage;
         const end = start + rowsPerPage;
-        return filteredSensors.slice(start, end);
-    }, [filteredSensors, page, rowsPerPage]);
+        return filteredLocations.slice(start, end);
+    }, [filteredLocations, page, rowsPerPage]);
 
-    const pages = Math.ceil(filteredSensors.length / rowsPerPage);
+    const pages = Math.ceil(filteredLocations.length / rowsPerPage);
 
     const onSearchChange = useCallback((value?: string) => {
         if (value) {
@@ -90,52 +73,81 @@ export default function SensorsPage() {
         setPage(1);
     }, []);
 
-    const renderCell = useCallback((sensor: PotentialSensorDTO, columnKey: React.Key) => {
+    const renderCell = useCallback((location: LocationDTO, columnKey: React.Key) => {
         switch (columnKey) {
             case "name":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-bold text-sm capitalize">{sensor.name || "Unknown"}</p>
+                        <p className="text-bold text-sm capitalize">{location.name || "Unnamed Location"}</p>
                         <p className="text-bold text-sm capitalize text-default-700">
-                            ID: {sensor.id || "N/A"}
+                            ID: {location.id}
                         </p>
                     </div>
                 );
-            case "description":
+            case "coordinates":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-sm text-default-800">
-                            {sensor.description || "No description available"}
-                        </p>
+                        {location.coordinates && hasValidCoordinates(location) ? (
+                            <>
+                                <p className="text-sm text-default-800">
+                                    Lat: {location.coordinates.lat.toFixed(6)}
+                                </p>
+                                <p className="text-sm text-default-800">
+                                    Lon: {location.coordinates.lon.toFixed(6)}
+                                </p>
+                            </>
+                        ) : location.coordinates && location.coordinates.lat === 0 && location.coordinates.lon === 0 ? (
+                            <p className="text-sm text-default-500">Invalid (0, 0)</p>
+                        ) : (
+                            <p className="text-sm text-default-500">No coordinates</p>
+                        )}
                     </div>
                 );
             case "status":
                 return (
                     <Chip
                         className="capitalize"
-                        color={sensor.isActive ? "success" : "danger"}
+                        color={hasValidCoordinates(location) ? "success" : "warning"}
                         size="sm"
                         variant="flat"
                     >
-                        {sensor.isActive ? "Active" : "Inactive"}
+                        {hasValidCoordinates(location) ? "Mapped" : "Unmapped"}
                     </Chip>
                 );
             case "actions":
                 return (
                     <div className="flex items-center justify-center gap-2">
-                        <Tooltip content={sensor.isActive ? "Deactivate sensor" : "Activate sensor"}>
-                            <Switch
+                        <Tooltip content="View Details">
+                            <Button
                                 size="sm"
-                                isSelected={sensor.isActive || false}
-                                onValueChange={() => handleToggleRequest(sensor)}
-                            />
+                                variant="light"
+                                isIconOnly
+                                onPress={() => handleViewDetails(location)}
+                            >
+                                👁️
+                            </Button>
+                        </Tooltip>
+                        <Tooltip content="Edit Location">
+                            <Button size="sm" variant="light" isIconOnly>
+                                ✏️
+                            </Button>
+                        </Tooltip>
+                        <Tooltip content="View on Map">
+                            <Button
+                                size="sm"
+                                variant="light"
+                                isIconOnly
+                                isDisabled={!hasValidCoordinates(location)}
+                            >
+                                📍
+                            </Button>
                         </Tooltip>
                     </div>
                 );
             default:
                 return null;
         }
-    }, [handleToggleRequest]);
+    }, [handleViewDetails]);
 
     const topContent = useMemo(() => {
         return (
@@ -144,7 +156,7 @@ export default function SensorsPage() {
                     <Input
                         isClearable
                         className="w-full sm:max-w-[44%]"
-                        placeholder="Search by name or description..."
+                        placeholder="Search by name or ID..."
                         startContent={<SearchIcon/>}
                         value={filterValue}
                         onClear={() => onClear()}
@@ -155,16 +167,16 @@ export default function SensorsPage() {
                             Total: {totalCount}
                         </Chip>
                         <Chip color="success" variant="flat">
-                            Active: {activeCount}
+                            Mapped: {locationsWithCoordinates}
                         </Chip>
-                        <Chip color="danger" variant="flat">
-                            Inactive: {inactiveCount}
+                        <Chip color="warning" variant="flat">
+                            Unmapped: {totalCount - locationsWithCoordinates}
                         </Chip>
                     </div>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-default-800 text-small">
-                        Total {filteredSensors.length} sensors
+                        Total {filteredLocations.length} locations
                     </span>
                     <label className="flex items-center text-default-800 text-small">
                         Rows per page:
@@ -176,25 +188,25 @@ export default function SensorsPage() {
                             }}
                             value={rowsPerPage}
                         >
-                            <option className={"text-black"} value="5">5</option>
-                            <option className={"text-black"} value="10">10</option>
-                            <option className={"text-black"} value="15">15</option>
-                            <option className={"text-black"} value="20">20</option>
-                            <option className={"text-black"} value="50">50</option>
+                            <option className="text-black" value="5">5</option>
+                            <option className="text-black" value="10">10</option>
+                            <option className="text-black" value="15">15</option>
+                            <option className="text-black" value="20">20</option>
+                            <option className="text-black" value="50">50</option>
                         </select>
                     </label>
                 </div>
             </div>
         );
-    }, [filterValue, onSearchChange, onClear, totalCount, activeCount, inactiveCount, filteredSensors.length, rowsPerPage]);
+    }, [filterValue, onSearchChange, onClear, totalCount, locationsWithCoordinates, filteredLocations.length, rowsPerPage]);
 
     const bottomContent = useMemo(() => {
         return (
             <div className="py-2 px-2 flex justify-between items-center">
                 <span className="w-[30%] text-small text-default-800">
-                    {filteredSensors.length > 0
-                        ? `${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, filteredSensors.length)} of ${filteredSensors.length}`
-                        : "0 sensors"
+                    {filteredLocations.length > 0
+                        ? `${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, filteredLocations.length)} of ${filteredLocations.length}`
+                        : "0 locations"
                     }
                 </span>
                 <Pagination
@@ -230,11 +242,11 @@ export default function SensorsPage() {
                 </div>
             </div>
         );
-    }, [page, pages, filteredSensors.length, rowsPerPage]);
+    }, [page, pages, filteredLocations.length, rowsPerPage]);
 
     const columns = [
-        {key: "name", label: "SENSOR NAME"},
-        {key: "description", label: "DESCRIPTION"},
+        {key: "name", label: "LOCATION NAME"},
+        {key: "coordinates", label: "COORDINATES"},
         {key: "status", label: "STATUS"},
         {key: "actions", label: "ACTIONS"},
     ];
@@ -242,14 +254,14 @@ export default function SensorsPage() {
     return (
         <div className="mx-24 px-4 py-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Potential Sensors Management</h1>
+                <h1 className="text-3xl font-bold mb-2">Locations Management</h1>
                 <p className="text-default-800">
-                    Manage and monitor all potential sensors in the system
+                    Manage and monitor all measurement locations in the system
                 </p>
             </div>
 
             <Table
-                aria-label="Potential sensors table"
+                aria-label="Locations table"
                 isHeaderSticky
                 bottomContent={bottomContent}
                 bottomContentPlacement="outside"
@@ -270,19 +282,20 @@ export default function SensorsPage() {
                     )}
                 </TableHeader>
                 <TableBody
-                    emptyContent={isLoading ? " " : "No sensors found"}
-                    items={paginatedSensors}
+                    emptyContent={isLoading ? " " : "No locations found"}
+                    items={paginatedLocations}
                     isLoading={isLoading}
-                    loadingContent={<Spinner label="Loading sensors..."/>}
+                    loadingContent={<Spinner label="Loading locations..."/>}
                 >
                     {(item) => (
-                        <TableRow key={item.id || Math.random()}>
+                        <TableRow key={item.id}>
                             {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
                         </TableRow>
                     )}
                 </TableBody>
             </Table>
 
+            {/* Detail Modal */}
             <Modal
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
@@ -297,22 +310,24 @@ export default function SensorsPage() {
                     {(onClose) => (
                         <>
                             <ModalHeader className="flex flex-col gap-1">
-                                Confirm Sensor Status Change
+                                Location Details
                             </ModalHeader>
                             <ModalBody>
-                                <p>
-                                    Are you sure you want to {selectedSensor?.isActive ? 'deactivate' : 'activate'} the
-                                    sensor{' '}
-                                    <strong>{selectedSensor?.name || 'Unknown'}</strong>?
-                                </p>
-                                {selectedSensor?.isActive ? (
-                                    <p className="text-warning text-sm mt-2">
-                                        Deactivating this sensor will stop all measurements and data collection.
-                                    </p>
-                                ) : (
-                                    <p className="text-success text-sm mt-2">
-                                        Activating this sensor will resume measurements and data collection.
-                                    </p>
+                                {selectedLocation && (
+                                    <div className="space-y-2">
+                                        <p><strong>Name:</strong> {selectedLocation.name || "Unnamed Location"}</p>
+                                        <p><strong>ID:</strong> {selectedLocation.id}</p>
+                                        {selectedLocation.coordinates && hasValidCoordinates(selectedLocation) ? (
+                                            <>
+                                                <p><strong>Latitude:</strong> {selectedLocation.coordinates.lat}</p>
+                                                <p><strong>Longitude:</strong> {selectedLocation.coordinates.lon}</p>
+                                            </>
+                                        ) : selectedLocation.coordinates && selectedLocation.coordinates.lat === 0 && selectedLocation.coordinates.lon === 0 ? (
+                                            <p className="text-warning">Invalid coordinates (0, 0)</p>
+                                        ) : (
+                                            <p className="text-warning">No coordinates available</p>
+                                        )}
+                                    </div>
                                 )}
                             </ModalBody>
                             <ModalFooter>
@@ -320,16 +335,14 @@ export default function SensorsPage() {
                                     color="default"
                                     variant="light"
                                     onPress={onClose}
-                                    isDisabled={isConfirming}
                                 >
-                                    Cancel
+                                    Close
                                 </Button>
                                 <Button
-                                    color={selectedSensor?.isActive ? "danger" : "success"}
-                                    onPress={handleConfirmToggle}
-                                    isLoading={isConfirming}
+                                    color="primary"
+                                    onPress={onClose}
                                 >
-                                    {selectedSensor?.isActive ? 'Deactivate' : 'Activate'}
+                                    Edit
                                 </Button>
                             </ModalFooter>
                         </>

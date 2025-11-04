@@ -1,12 +1,13 @@
-import { useState, useMemo, useCallback } from "react";
-import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Tabs, Tab } from "@heroui/tabs";
-import { Input } from "@heroui/input";
-import { Select, SelectItem } from "@heroui/select";
-import { Chip } from "@heroui/chip";
-import { Button } from "@heroui/button";
-import { SearchIcon } from "@/components/icons";
-import { Pagination } from "@heroui/pagination";
+import {useState, useMemo, useCallback} from "react";
+import {Card, CardBody} from "@heroui/card";
+import {Tabs, Tab} from "@heroui/tabs";
+import {Input} from "@heroui/input";
+import {Select, SelectItem} from "@heroui/select";
+import {Chip} from "@heroui/chip";
+import {Button} from "@heroui/button";
+import {SearchIcon} from "@/components/icons";
+import {Pagination} from "@heroui/pagination";
+import {formatGermanDate} from "@/utils/dateFormatter";
 
 interface LogEntry {
     id: string;
@@ -268,7 +269,7 @@ export default function LogsPage() {
                         isClearable
                         className="w-full sm:max-w-[44%]"
                         placeholder="Search logs..."
-                        startContent={<SearchIcon />}
+                        startContent={<SearchIcon/>}
                         value={filterValue}
                         onClear={() => onClear()}
                         onValueChange={onSearchChange}
@@ -281,11 +282,11 @@ export default function LogsPage() {
                             selectedKeys={[levelFilter]}
                             onChange={(e) => setLevelFilter(e.target.value)}
                         >
-                            <SelectItem key="all" value="all">All Levels</SelectItem>
-                            <SelectItem key="error" value="error">Error</SelectItem>
-                            <SelectItem key="warning" value="warning">Warning</SelectItem>
-                            <SelectItem key="info" value="info">Info</SelectItem>
-                            <SelectItem key="debug" value="debug">Debug</SelectItem>
+                            <SelectItem key="all">All Levels</SelectItem>
+                            <SelectItem key="error">Error</SelectItem>
+                            <SelectItem key="warning">Warning</SelectItem>
+                            <SelectItem key="info">Info</SelectItem>
+                            <SelectItem key="debug">Debug</SelectItem>
                         </Select>
                         <Button color="primary" size="md">
                             Export Logs
@@ -293,23 +294,23 @@ export default function LogsPage() {
                     </div>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-default-400 text-small">
+                    <span className="text-default-800 text-small">
                         Total {filteredLogs.length} log entries
                     </span>
-                    <label className="flex items-center text-default-400 text-small">
+                    <label className="flex items-center text-default-800 text-small">
                         Rows per page:
                         <select
-                            className="bg-transparent outline-none text-default-400 text-small ml-2"
+                            className="bg-transparent outline-none text-default-800 text-small ml-2"
                             onChange={(e) => {
                                 setRowsPerPage(Number(e.target.value));
                                 setPage(1);
                             }}
                             value={rowsPerPage}
                         >
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
+                            <option className="text-black" value="5">5</option>
+                            <option className="text-black" value="10">10</option>
+                            <option className="text-black" value="20">20</option>
+                            <option className="text-black" value="50">50</option>
                         </select>
                     </label>
                 </div>
@@ -320,7 +321,7 @@ export default function LogsPage() {
     const bottomContent = useMemo(() => {
         return (
             <div className="py-2 px-2 flex justify-between items-center">
-                <span className="w-[30%] text-small text-default-400">
+                <span className="w-[30%] text-small text-default-800">
                     {filteredLogs.length > 0
                         ? `${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, filteredLogs.length)} of ${filteredLogs.length}`
                         : "0 logs"
@@ -339,7 +340,9 @@ export default function LogsPage() {
                     <Button
                         isDisabled={page === 1}
                         size="sm"
+                        color={"default"}
                         variant="flat"
+                        className={"text-default-800 text-bold"}
                         onPress={() => setPage(page - 1)}
                     >
                         Previous
@@ -347,7 +350,9 @@ export default function LogsPage() {
                     <Button
                         isDisabled={page === pages || pages === 0}
                         size="sm"
+                        color={"primary"}
                         variant="flat"
+                        className={"text-default-800 text-bold"}
                         onPress={() => setPage(page + 1)}
                     >
                         Next
@@ -358,7 +363,7 @@ export default function LogsPage() {
     }, [page, pages, filteredLogs.length, rowsPerPage]);
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="mx-24 px-4 py-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2">System Logs</h1>
                 <p className="text-default-800">
@@ -374,12 +379,12 @@ export default function LogsPage() {
                             key={system}
                             isPressable
                             onPress={() => setSelectedTab(system)}
-                            className={`border ${selectedTab === system ? 'border-primary shadow-md' : 'border-default-200 dark:border-default-100'} hover:shadow-md transition-shadow bg-white dark:bg-default-900`}
+                            className={`border ${selectedTab === system ? 'border-primary shadow-md' : 'border-default-200 dark:border-default-100'} hover:shadow-md transition-shadow bg-default-200`}
                         >
                             <CardBody className="p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-semibold capitalize text-default-800">{system}</h3>
-                                    <Chip size="sm" variant="flat">
+                                    <Chip size="sm" variant="flat" className={"!text-default-800 bg-primary-100"}>
                                         {stats.total}
                                     </Chip>
                                 </div>
@@ -401,7 +406,7 @@ export default function LogsPage() {
                 })}
             </div>
 
-            <Card className="border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-slate-900">
+            <Card className="border border-default-200 dark:border-default-100 shadow-sm bg-default-200">
                 <CardBody className="p-0">
                     <Tabs
                         selectedKey={selectedTab}
@@ -409,10 +414,10 @@ export default function LogsPage() {
                         aria-label="System logs"
                         className="px-6 pt-4"
                     >
-                        <Tab key="backend" title="Backend" />
-                        <Tab key="frontend" title="Frontend" />
-                        <Tab key="forstserver" title="Forstserver" />
-                        <Tab key="datenbanken" title="Datenbanken" />
+                        <Tab key="backend" title="Backend"/>
+                        <Tab key="frontend" title="Frontend"/>
+                        <Tab key="forstserver" title="Forstserver"/>
+                        <Tab key="datenbanken" title="Datenbanken"/>
                     </Tabs>
 
                     <div className="px-6 py-4">
@@ -422,7 +427,8 @@ export default function LogsPage() {
                     <div className="px-6 pb-4">
                         <div className="space-y-2">
                             {paginatedLogs.map((log) => (
-                                <Card key={log.id} className="border border-default-200 dark:border-default-100 hover:shadow-sm transition-shadow bg-white dark:bg-default-900">
+                                <Card key={log.id}
+                                      className="border border-default-200 dark:border-default-100 hover:shadow-sm transition-shadow bg-default-50">
                                     <CardBody className="p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex items-center gap-3">
@@ -436,7 +442,8 @@ export default function LogsPage() {
                                                 </Chip>
                                                 <span className="text-sm font-medium">{log.service}</span>
                                             </div>
-                                            <span className="text-xs text-default-400">{log.timestamp}</span>
+                                            <span
+                                                className="text-xs text-default-400">{formatGermanDate(log.timestamp)}</span>
                                         </div>
                                         <p className="text-sm mb-1">{log.message}</p>
                                         {log.details && (

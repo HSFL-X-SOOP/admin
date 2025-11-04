@@ -16,6 +16,7 @@ import {Input} from "@heroui/input";
 import {Button} from "@heroui/button";
 import {SearchIcon} from "@/components/icons";
 import {AuthorityRole} from "@/api/models/auth";
+import {formatGermanDate, formatGermanDateOnly} from "@/utils/dateFormatter";
 
 interface UserData {
     id: number;
@@ -172,7 +173,7 @@ export default function UsersPage() {
                     <User
                         avatarProps={{radius: "full", size: "sm", src: user.avatar}}
                         classNames={{
-                            description: "text-default-400"
+                            description: "text-default-700"
                         }}
                         description={user.email}
                         name={user.name}
@@ -215,18 +216,18 @@ export default function UsersPage() {
             case "joinDate":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-bold text-sm">{user.joinDate}</p>
+                        <p className="text-bold text-sm text-default-800">{formatGermanDateOnly(user.joinDate)}</p>
                     </div>
                 );
             case "lastLogin":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-bold text-sm">{user.lastLogin}</p>
+                        <p className="text-bold text-sm text-default-800">{formatGermanDate(user.lastLogin)}</p>
                     </div>
                 );
             case "actions":
                 return (
-                    <div className="relative flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                         <Tooltip content="View Details">
                             <Button size="sm" variant="light" isIconOnly>
                                 👁️
@@ -289,22 +290,22 @@ export default function UsersPage() {
                     </div>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-default-400 text-small">
+                    <span className="text-default-800 text-small">
                         Total {filteredUsers.length} users
                     </span>
-                    <label className="flex items-center text-default-400 text-small">
+                    <label className="flex items-center text-default-800 text-small">
                         Rows per page:
                         <select
-                            className="bg-transparent outline-none text-default-400 text-small ml-2"
+                            className="bg-transparent outline-none text-default-800 text-small ml-2"
                             onChange={(e) => {
                                 setRowsPerPage(Number(e.target.value));
                                 setPage(1);
                             }}
                             value={rowsPerPage}
                         >
-                            <option value="5">5</option>
-                            <option value="10">10</option>
-                            <option value="15">15</option>
+                            <option className="text-black" value="5">5</option>
+                            <option className="text-black" value="10">10</option>
+                            <option className="text-black" value="15">15</option>
                         </select>
                     </label>
                 </div>
@@ -318,7 +319,7 @@ export default function UsersPage() {
 
         return (
             <div className="py-2 px-2 flex justify-between items-center">
-                <span className="w-[30%] text-small text-default-400">{selectionMessage}</span>
+                <span className="w-[30%] text-small text-default-800">{selectionMessage}</span>
                 <Pagination
                     isCompact
                     showControls
@@ -332,7 +333,9 @@ export default function UsersPage() {
                     <Button
                         isDisabled={page === 1}
                         size="sm"
+                        color={"default"}
                         variant="flat"
+                        className={"text-default-800 text-bold"}
                         onPress={() => setPage(page - 1)}
                     >
                         Previous
@@ -340,7 +343,9 @@ export default function UsersPage() {
                     <Button
                         isDisabled={page === pages || pages === 0}
                         size="sm"
+                        color={"primary"}
                         variant="flat"
+                        className={"text-default-800 text-bold"}
                         onPress={() => setPage(page + 1)}
                     >
                         Next
@@ -360,7 +365,7 @@ export default function UsersPage() {
     ];
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="mx-24 px-4 py-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2">User Management</h1>
                 <p className="text-default-800">
@@ -374,7 +379,7 @@ export default function UsersPage() {
                 bottomContent={bottomContent}
                 bottomContentPlacement="outside"
                 classNames={{
-                    wrapper: "max-h-[600px] border border-default-200 dark:border-default-100 shadow-sm bg-white dark:bg-default-900",
+                    wrapper: "max-h-[800px] border border-default-200 dark:border-default-100 shadow-sm bg-default-200",
                 }}
                 selectedKeys={selectedKeys}
                 selectionMode="multiple"

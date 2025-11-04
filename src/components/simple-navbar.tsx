@@ -28,7 +28,9 @@ export const SimpleNavbar = ({showAuth = false}: SimpleNavbarProps) => {
     const menuItems = [
         {label: "Dashboard", href: "/dashboard"},
         {label: "Sensors", href: "/sensors"},
+        {label: "Locations", href: "/locations"},
         {label: "Users", href: "/users"},
+        {label: "Logs", href: "/logs"},
         {label: "Settings", href: "/settings"},
     ];
 

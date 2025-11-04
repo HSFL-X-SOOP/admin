@@ -2,21 +2,16 @@ import {Card, CardBody, CardHeader, CardFooter} from "@heroui/card";
 import {Button} from "@heroui/button";
 import {useSession} from "@/context/SessionContext";
 import {useNavigate} from "react-router-dom";
+import {useLocations} from "@/hooks/useLocations";
+import {useSensors} from "@/hooks/useSensors";
 
 export default function DashboardPage() {
     const {session} = useSession();
     const navigate = useNavigate();
+    const {totalCount: locationsCount} = useLocations();
+    const {activeCount: activeSensorsCount} = useSensors();
 
     const quickActions = [
-        {
-            title: "Manage Sensors",
-            description: "View and manage potential sensors",
-            action: () => navigate("/sensors"),
-            color: "primary" as const,
-            icon: "🔧",
-            className: "",
-            iconColor: "text-blue-500"
-        },
         {
             title: "User Management",
             description: "Manage user accounts and permissions",
@@ -27,13 +22,31 @@ export default function DashboardPage() {
             iconColor: "text-purple-500"
         },
         {
+            title: "Manage Sensors",
+            description: "View and manage potential sensors",
+            action: () => navigate("/sensors"),
+            color: "primary" as const,
+            icon: "🔧",
+            className: "",
+            iconColor: "text-blue-500"
+        },
+        {
+            title: "Locations",
+            description: "View and manage measurement locations",
+            action: () => navigate("/locations"),
+            color: undefined,
+            icon: "📍",
+            className: "bg-purple-300 dark:bg-purple-400 text-purple-900",
+            iconColor: "text-green-500"
+        },
+        {
             title: "System Settings",
             description: "Configure system settings",
             action: () => navigate("/settings"),
             color: "danger" as const,
             icon: "⚙️",
             className: "",
-            iconColor: "text-green-500"
+            iconColor: "text-gray-500"
         },
         {
             title: "View Logs",
@@ -55,7 +68,7 @@ export default function DashboardPage() {
         },
         {
             label: "Active Sensors",
-            value: "56",
+            value: activeSensorsCount.toString(),
             color: "text-green-600",
             bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
         },
@@ -63,6 +76,12 @@ export default function DashboardPage() {
             label: "Measurements Today",
             value: "8,901",
             color: "text-purple-600",
+            bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
+        },
+        {
+            label: "Locations",
+            value: locationsCount.toString(),
+            color: "text-red-600",
             bgGradient: "from-white to-slate-50 dark:from-slate-900/30 dark:to-slate-800/30"
         },
         {
@@ -74,7 +93,7 @@ export default function DashboardPage() {
     ];
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="mx-24 px-4 py-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
                 <p className="text-default-800">
@@ -82,7 +101,7 @@ export default function DashboardPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
                 {stats.map((stat, index) => (
                     <Card
                         key={index}
@@ -98,7 +117,7 @@ export default function DashboardPage() {
 
             <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     {quickActions.map((action, index) => (
                         <Card
                             key={index}
