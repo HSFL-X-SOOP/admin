@@ -41,7 +41,7 @@ export default function LoginPage() {
                         </div>
                         <div className="text-center">
                             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-                            <p className="text-sm text-default-500 mt-1">
+                            <p className="text-sm text-default-800 mt-1">
                                 Sign in to access the admin panel
                             </p>
                         </div>
@@ -114,7 +114,7 @@ export default function LoginPage() {
 
                             <Divider className="my-2"/>
 
-                            <div className="text-center text-sm text-default-500">
+                            <div className="text-center text-sm text-default-800">
                                 <p>
                                     Need help? Contact{" "}
                                     <Link size="sm" href="mailto:support@marlin-live.com">
