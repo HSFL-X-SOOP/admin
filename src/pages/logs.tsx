@@ -1,265 +1,155 @@
 import {useState, useMemo, useCallback} from "react";
+import {
+    Table,
+    TableHeader,
+    TableColumn,
+    TableBody,
+    TableRow,
+    TableCell
+} from "@heroui/table";
 import {Card, CardBody} from "@heroui/card";
-import {Tabs, Tab} from "@heroui/tabs";
 import {Input} from "@heroui/input";
-import {Select, SelectItem} from "@heroui/select";
 import {Chip} from "@heroui/chip";
 import {Button} from "@heroui/button";
+import {Spinner} from "@heroui/spinner";
 import {SearchIcon} from "@/components/icons";
 import {Pagination} from "@heroui/pagination";
+import {Tooltip} from "@heroui/tooltip";
 import {formatGermanDate} from "@/utils/dateFormatter";
-
-interface LogEntry {
-    id: string;
-    timestamp: string;
-    level: "info" | "warning" | "error" | "debug";
-    service: string;
-    message: string;
-    details?: string;
-}
-
-const mockLogs: Record<string, LogEntry[]> = {
-    backend: [
-        {
-            id: "be-001",
-            timestamp: "2024-12-20 14:30:45",
-            level: "info",
-            service: "API Gateway",
-            message: "Successfully processed 150 requests in the last minute",
-            details: "Average response time: 45ms"
-        },
-        {
-            id: "be-002",
-            timestamp: "2024-12-20 14:28:12",
-            level: "warning",
-            service: "Authentication Service",
-            message: "Multiple failed login attempts detected",
-            details: "IP: 192.168.1.105 - 5 failed attempts"
-        },
-        {
-            id: "be-003",
-            timestamp: "2024-12-20 14:25:30",
-            level: "error",
-            service: "Database Connection",
-            message: "Connection timeout to replica database",
-            details: "Replica DB-02 failed to respond within 30s timeout"
-        },
-        {
-            id: "be-004",
-            timestamp: "2024-12-20 14:20:15",
-            level: "info",
-            service: "Scheduler",
-            message: "Daily backup job completed successfully",
-            details: "Backed up 2.3GB of data to S3"
-        },
-        {
-            id: "be-005",
-            timestamp: "2024-12-20 14:15:00",
-            level: "debug",
-            service: "Cache Service",
-            message: "Cache hit ratio: 87%",
-            details: "Redis memory usage: 1.2GB/4GB"
-        }
-    ],
-    frontend: [
-        {
-            id: "fe-001",
-            timestamp: "2024-12-20 14:32:10",
-            level: "error",
-            service: "React Application",
-            message: "Uncaught TypeError in SensorComponent",
-            details: "Cannot read property 'id' of undefined at line 45"
-        },
-        {
-            id: "fe-002",
-            timestamp: "2024-12-20 14:30:00",
-            level: "warning",
-            service: "Performance Monitor",
-            message: "Slow render detected",
-            details: "Dashboard component took 850ms to render"
-        },
-        {
-            id: "fe-003",
-            timestamp: "2024-12-20 14:28:45",
-            level: "info",
-            service: "Service Worker",
-            message: "New version available, updating cache",
-            details: "Version 2.3.1 cached successfully"
-        },
-        {
-            id: "fe-004",
-            timestamp: "2024-12-20 14:25:00",
-            level: "info",
-            service: "Analytics",
-            message: "Page view tracked",
-            details: "User navigated to /sensors page"
-        },
-        {
-            id: "fe-005",
-            timestamp: "2024-12-20 14:20:30",
-            level: "debug",
-            service: "WebSocket",
-            message: "Connection established to real-time service",
-            details: "Connected to ws://api.marlin-live.com/realtime"
-        }
-    ],
-    forstserver: [
-        {
-            id: "fs-001",
-            timestamp: "2024-12-20 14:31:00",
-            level: "info",
-            service: "Forest Data Processor",
-            message: "Processed 500 sensor readings",
-            details: "Temperature and humidity data from 50 forest sensors"
-        },
-        {
-            id: "fs-002",
-            timestamp: "2024-12-20 14:29:30",
-            level: "warning",
-            service: "Sensor Network",
-            message: "Sensor FL_024 not responding",
-            details: "Last communication: 2024-12-20 13:45:00"
-        },
-        {
-            id: "fs-003",
-            timestamp: "2024-12-20 14:27:15",
-            level: "info",
-            service: "Data Aggregation",
-            message: "Daily forest report generated",
-            details: "Report includes data from 48/50 active sensors"
-        },
-        {
-            id: "fs-004",
-            timestamp: "2024-12-20 14:25:00",
-            level: "error",
-            service: "Weather API",
-            message: "Failed to fetch weather forecast",
-            details: "External API returned 503 Service Unavailable"
-        },
-        {
-            id: "fs-005",
-            timestamp: "2024-12-20 14:20:00",
-            level: "info",
-            service: "Alert System",
-            message: "Fire risk assessment completed",
-            details: "Current fire risk level: LOW"
-        }
-    ],
-    datenbanken: [
-        {
-            id: "db-001",
-            timestamp: "2024-12-20 14:33:00",
-            level: "info",
-            service: "PostgreSQL Primary",
-            message: "Vacuum completed on sensors table",
-            details: "Freed 120MB of disk space"
-        },
-        {
-            id: "db-002",
-            timestamp: "2024-12-20 14:30:45",
-            level: "warning",
-            service: "PostgreSQL Replica",
-            message: "Replication lag detected",
-            details: "Current lag: 5.2 seconds"
-        },
-        {
-            id: "db-003",
-            timestamp: "2024-12-20 14:28:00",
-            level: "info",
-            service: "MongoDB",
-            message: "Index created on logs collection",
-            details: "Compound index on timestamp and service fields"
-        },
-        {
-            id: "db-004",
-            timestamp: "2024-12-20 14:25:30",
-            level: "error",
-            service: "Redis",
-            message: "Memory threshold exceeded",
-            details: "Using 3.8GB of 4GB available memory"
-        },
-        {
-            id: "db-005",
-            timestamp: "2024-12-20 14:22:00",
-            level: "info",
-            service: "Backup Service",
-            message: "Incremental backup completed",
-            details: "Backed up 450MB of changed data"
-        }
-    ]
-};
+import {useLogs} from "@/hooks/useLogs";
+import {LogEntry, LogLevel} from "@/api/models/logs";
 
 export default function LogsPage() {
-    const [selectedTab, setSelectedTab] = useState<string>("backend");
-    const [filterValue, setFilterValue] = useState("");
-    const [levelFilter, setLevelFilter] = useState("all");
-    const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [searchValue, setSearchValue] = useState("");
+    const [levelFilter, setLevelFilter] = useState<LogLevel | "all">("all");
+    const [serviceFilter, setServiceFilter] = useState<string>("all");
 
-    const filteredLogs = useMemo(() => {
-        let logs = mockLogs[selectedTab] || [];
+    // Use the custom hook with initial filters
+    const {
+        logs,
+        totalCount,
+        filteredCount,
+        isLoading,
+        error,
+        services,
+        page,
+        limit,
+        totalPages,
+        hasNextPage,
+        hasPrevPage,
+        logStats,
+        searchLogs,
+        filterByLevel,
+        filterByService,
+        goToPage,
+        nextPage,
+        prevPage,
+        changeLimit,
+        exportLogs,
+        loadLogs
+    } = useLogs({
+        initialPage: 1,
+        initialLimit: 10,
+        autoRefresh: false, // Set to true if you want auto-refresh
+        refreshInterval: 30 // Refresh every 30 seconds
+    });
 
-        if (filterValue) {
-            const searchLower = filterValue.toLowerCase();
-            logs = logs.filter((log) =>
-                log.message.toLowerCase().includes(searchLower) ||
-                log.service.toLowerCase().includes(searchLower) ||
-                (log.details && log.details.toLowerCase().includes(searchLower))
-            );
-        }
-
-        if (levelFilter !== "all") {
-            logs = logs.filter((log) => log.level === levelFilter);
-        }
-
-        return logs;
-    }, [selectedTab, filterValue, levelFilter]);
-
-    const paginatedLogs = useMemo(() => {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        return filteredLogs.slice(start, end);
-    }, [filteredLogs, page, rowsPerPage]);
-
-    const pages = Math.ceil(filteredLogs.length / rowsPerPage);
-
+    // Handle search
     const onSearchChange = useCallback((value?: string) => {
-        if (value) {
-            setFilterValue(value);
-            setPage(1);
-        } else {
-            setFilterValue("");
-        }
-    }, []);
+        setSearchValue(value || "");
+        searchLogs(value || "");
+    }, [searchLogs]);
 
     const onClear = useCallback(() => {
-        setFilterValue("");
-        setPage(1);
-    }, []);
+        setSearchValue("");
+        searchLogs("");
+    }, [searchLogs]);
 
-    const getLevelColor = (level: string) => {
-        switch (level) {
-            case "error":
-                return "danger";
-            case "warning":
-                return "warning";
-            case "info":
-                return "primary";
-            case "debug":
-                return "default";
+    // Handle level filter change
+    const handleLevelFilterChange = useCallback((value: string) => {
+        setLevelFilter(value as LogLevel | "all");
+        filterByLevel(value === "all" ? undefined : value as LogLevel);
+    }, [filterByLevel]);
+
+    // Handle service filter change
+    const handleServiceFilterChange = useCallback((value: string) => {
+        setServiceFilter(value);
+        filterByService(value);
+    }, [filterByService]);
+
+    // Handle export
+    const handleExport = useCallback(async () => {
+        await exportLogs('json');
+    }, [exportLogs]);
+
+    const renderCell = useCallback((log: LogEntry, columnKey: React.Key) => {
+        switch (columnKey) {
+            case "timestamp":
+                return (
+                    <div className="flex flex-col">
+                        <p className="text-bold text-sm text-default-800">
+                            {formatGermanDate(log.timestamp)}
+                        </p>
+                    </div>
+                );
+            case "level":
+                const levelColor = {
+                    info: "primary",
+                    warning: "warning",
+                    error: "danger",
+                    debug: "default",
+                    trace: "secondary",
+                    fatal: "danger"
+                } as const;
+
+                return (
+                    <Chip
+                        className="capitalize"
+                        color={levelColor[log.level] || "default"}
+                        size="sm"
+                        variant="flat"
+                    >
+                        {log.level}
+                    </Chip>
+                );
+            case "service":
+                return (
+                    <div className="flex flex-col">
+                        <p className="text-bold text-sm text-default-800">
+                            {log.service}
+                        </p>
+                    </div>
+                );
+            case "message":
+                return (
+                    <div className="flex flex-col">
+                        <p className="text-bold text-sm text-default-800">{log.message}</p>
+                        {log.user && (
+                            <p className="text-bold text-sm text-default-700 mt-1">User: {log.user}</p>
+                        )}
+                        {log.details && (
+                            <p className="text-sm text-default-700 mt-1">
+                                {typeof log.details === 'string'
+                                    ? log.details
+                                    : JSON.stringify(log.details, null, 2).substring(0, 100) + '...'}
+                            </p>
+                        )}
+                    </div>
+                );
+            case "actions":
+                return (
+                    <div className="flex items-center justify-center gap-2">
+                        <Tooltip content="View Details">
+                            <Button size="sm" variant="light" isIconOnly>
+                                👁️
+                            </Button>
+                        </Tooltip>
+                    </div>
+                );
             default:
-                return "default";
+                return null;
         }
-    };
-
-    const getSystemStats = (system: string) => {
-        const logs = mockLogs[system] || [];
-        return {
-            total: logs.length,
-            errors: logs.filter(l => l.level === "error").length,
-            warnings: logs.filter(l => l.level === "warning").length
-        };
-    };
+    }, []);
 
     const topContent = useMemo(() => {
         return (
@@ -270,60 +160,82 @@ export default function LogsPage() {
                         className="w-full sm:max-w-[44%]"
                         placeholder="Search logs..."
                         startContent={<SearchIcon/>}
-                        value={filterValue}
+                        value={searchValue}
                         onClear={() => onClear()}
                         onValueChange={onSearchChange}
                     />
                     <div className="flex gap-3">
-                        <Select
-                            size="sm"
-                            label="Log Level"
-                            className="w-36"
-                            selectedKeys={[levelFilter]}
-                            onChange={(e) => setLevelFilter(e.target.value)}
+                        <select
+                            className="px-3 py-2 rounded-lg border border-default-200 text-sm"
+                            value={levelFilter}
+                            onChange={(e) => handleLevelFilterChange(e.target.value)}
                         >
-                            <SelectItem key="all">All Levels</SelectItem>
-                            <SelectItem key="error">Error</SelectItem>
-                            <SelectItem key="warning">Warning</SelectItem>
-                            <SelectItem key="info">Info</SelectItem>
-                            <SelectItem key="debug">Debug</SelectItem>
-                        </Select>
-                        <Button color="primary" size="md">
-                            Export Logs
+                            <option value="all">All Levels</option>
+                            <option value="info">Info</option>
+                            <option value="warning">Warning</option>
+                            <option value="error">Error</option>
+                            <option value="debug">Debug</option>
+                            <option value="trace">Trace</option>
+                            <option value="fatal">Fatal</option>
+                        </select>
+                        <select
+                            className="px-3 py-2 rounded-lg border border-default-200 text-sm"
+                            value={serviceFilter}
+                            onChange={(e) => handleServiceFilterChange(e.target.value)}
+                        >
+                            <option value="all">All Services</option>
+                            {services.map(service => (
+                                <option key={service} value={service}>
+                                    {service}
+                                </option>
+                            ))}
+                        </select>
+                        <Button
+                            color="secondary"
+                            size="md"
+                            onPress={() => loadLogs()}
+                        >
+                            🔄 Refresh
+                        </Button>
+                        <Button
+                            color="primary"
+                            size="md"
+                            onPress={handleExport}
+                        >
+                            📥 Export
                         </Button>
                     </div>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-default-800 text-small">
-                        Total {filteredLogs.length} log entries
+                        Total {filteredCount} log entries (of {totalCount} total)
                     </span>
                     <label className="flex items-center text-default-800 text-small">
                         Rows per page:
                         <select
                             className="bg-transparent outline-none text-default-800 text-small ml-2"
-                            onChange={(e) => {
-                                setRowsPerPage(Number(e.target.value));
-                                setPage(1);
-                            }}
-                            value={rowsPerPage}
+                            onChange={(e) => changeLimit(Number(e.target.value))}
+                            value={limit}
                         >
                             <option className="text-black" value="5">5</option>
                             <option className="text-black" value="10">10</option>
-                            <option className="text-black" value="20">20</option>
+                            <option className="text-black" value="15">15</option>
+                            <option className="text-black" value="25">25</option>
                             <option className="text-black" value="50">50</option>
+                            <option className="text-black" value="100">100</option>
                         </select>
                     </label>
                 </div>
             </div>
         );
-    }, [filterValue, onSearchChange, onClear, filteredLogs.length, rowsPerPage, levelFilter]);
+    }, [searchValue, onSearchChange, onClear, filteredCount, totalCount, limit, changeLimit, levelFilter, serviceFilter, services, handleExport, loadLogs, handleLevelFilterChange, handleServiceFilterChange]);
 
     const bottomContent = useMemo(() => {
         return (
             <div className="py-2 px-2 flex justify-between items-center">
                 <span className="w-[30%] text-small text-default-800">
-                    {filteredLogs.length > 0
-                        ? `${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, filteredLogs.length)} of ${filteredLogs.length}`
+                    {filteredCount > 0
+                        ? `${(page - 1) * limit + 1}-${Math.min(page * limit, filteredCount)} of ${filteredCount}`
                         : "0 logs"
                     }
                 </span>
@@ -333,139 +245,139 @@ export default function LogsPage() {
                     showShadow
                     color="primary"
                     page={page}
-                    total={pages || 1}
-                    onChange={setPage}
+                    total={totalPages || 1}
+                    onChange={goToPage}
                 />
                 <div className="hidden sm:flex w-[30%] justify-end gap-2">
                     <Button
-                        isDisabled={page === 1}
+                        isDisabled={!hasPrevPage}
                         size="sm"
                         color={"default"}
                         variant="flat"
                         className={"text-default-800 text-bold"}
-                        onPress={() => setPage(page - 1)}
+                        onPress={prevPage}
                     >
                         Previous
                     </Button>
                     <Button
-                        isDisabled={page === pages || pages === 0}
+                        isDisabled={!hasNextPage}
                         size="sm"
                         color={"primary"}
                         variant="flat"
                         className={"text-default-800 text-bold"}
-                        onPress={() => setPage(page + 1)}
+                        onPress={nextPage}
                     >
                         Next
                     </Button>
                 </div>
             </div>
         );
-    }, [page, pages, filteredLogs.length, rowsPerPage]);
+    }, [page, totalPages, filteredCount, limit, goToPage, hasPrevPage, hasNextPage, prevPage, nextPage]);
+
+    const columns = [
+        {key: "timestamp", label: "TIMESTAMP"},
+        {key: "level", label: "LEVEL"},
+        {key: "service", label: "SERVICE"},
+        {key: "message", label: "MESSAGE"},
+        {key: "actions", label: "ACTIONS"}
+    ];
 
     return (
         <div className="mx-24 px-4 py-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2">System Logs</h1>
                 <p className="text-default-800">
-                    Monitor and analyze logs from all system components
+                    Monitor and analyze system logs from all services
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                {Object.keys(mockLogs).map((system) => {
-                    const stats = getSystemStats(system);
-                    return (
-                        <Card
-                            key={system}
-                            isPressable
-                            onPress={() => setSelectedTab(system)}
-                            className={`border ${selectedTab === system ? 'border-primary shadow-md' : 'border-default-200 dark:border-default-100'} hover:shadow-md transition-shadow bg-default-200`}
-                        >
-                            <CardBody className="p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-semibold capitalize text-default-800">{system}</h3>
-                                    <Chip size="sm" variant="flat" className={"!text-default-800 bg-primary-100"}>
-                                        {stats.total}
-                                    </Chip>
-                                </div>
-                                <div className="flex gap-2">
-                                    {stats.errors > 0 && (
-                                        <Chip size="sm" color="danger" variant="dot">
-                                            {stats.errors} errors
-                                        </Chip>
-                                    )}
-                                    {stats.warnings > 0 && (
-                                        <Chip size="sm" color="warning" variant="dot">
-                                            {stats.warnings} warnings
-                                        </Chip>
-                                    )}
-                                </div>
-                            </CardBody>
-                        </Card>
-                    );
-                })}
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+                <Card className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200">
+                    <CardBody className="p-5">
+                        <p className="text-sm text-default-800 font-medium mb-2">Total</p>
+                        <p className="text-2xl font-bold text-default-800">{logStats.total}</p>
+                    </CardBody>
+                </Card>
+                <Card className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200">
+                    <CardBody className="p-5">
+                        <p className="text-sm text-default-800 font-medium mb-2">Info</p>
+                        <p className="text-2xl font-bold text-blue-600">{logStats.info}</p>
+                    </CardBody>
+                </Card>
+                <Card className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200">
+                    <CardBody className="p-5">
+                        <p className="text-sm text-default-800 font-medium mb-2">Warning</p>
+                        <p className="text-2xl font-bold text-amber-600">{logStats.warning}</p>
+                    </CardBody>
+                </Card>
+                <Card className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200">
+                    <CardBody className="p-5">
+                        <p className="text-sm text-default-800 font-medium mb-2">Error</p>
+                        <p className="text-2xl font-bold text-red-600">{logStats.error}</p>
+                    </CardBody>
+                </Card>
+                <Card className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200">
+                    <CardBody className="p-5">
+                        <p className="text-sm text-default-800 font-medium mb-2">Debug</p>
+                        <p className="text-2xl font-bold text-gray-600">{logStats.debug}</p>
+                    </CardBody>
+                </Card>
+                <Card className="border border-default-200 dark:border-default-100 shadow-sm hover:shadow-md transition-shadow bg-default-200">
+                    <CardBody className="p-5">
+                        <p className="text-sm text-default-800 font-medium mb-2">Fatal</p>
+                        <p className="text-2xl font-bold text-purple-600">{logStats.fatal}</p>
+                    </CardBody>
+                </Card>
             </div>
 
-            <Card className="border border-default-200 dark:border-default-100 shadow-sm bg-default-200">
-                <CardBody className="p-0">
-                    <Tabs
-                        selectedKey={selectedTab}
-                        onSelectionChange={(key) => setSelectedTab(key as string)}
-                        aria-label="System logs"
-                        className="px-6 pt-4"
-                    >
-                        <Tab key="backend" title="Backend"/>
-                        <Tab key="frontend" title="Frontend"/>
-                        <Tab key="forstserver" title="Forstserver"/>
-                        <Tab key="datenbanken" title="Datenbanken"/>
-                    </Tabs>
+            {/* Error Message */}
+            {error && !isLoading && (
+                <Card className="mb-6 border border-danger-200 bg-danger-50">
+                    <CardBody>
+                        <p className="text-danger-600">⚠️ {error}</p>
+                        <p className="text-sm text-default-600 mt-2">
+                            The logs API endpoint may not be available yet. Please check the backend implementation.
+                        </p>
+                    </CardBody>
+                </Card>
+            )}
 
-                    <div className="px-6 py-4">
-                        {topContent}
-                    </div>
-
-                    <div className="px-6 pb-4">
-                        <div className="space-y-2">
-                            {paginatedLogs.map((log) => (
-                                <Card key={log.id}
-                                      className="border border-default-200 dark:border-default-100 hover:shadow-sm transition-shadow bg-default-50">
-                                    <CardBody className="p-4">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="flex items-center gap-3">
-                                                <Chip
-                                                    size="sm"
-                                                    color={getLevelColor(log.level)}
-                                                    variant="flat"
-                                                    className="uppercase"
-                                                >
-                                                    {log.level}
-                                                </Chip>
-                                                <span className="text-sm font-medium">{log.service}</span>
-                                            </div>
-                                            <span
-                                                className="text-xs text-default-400">{formatGermanDate(log.timestamp)}</span>
-                                        </div>
-                                        <p className="text-sm mb-1">{log.message}</p>
-                                        {log.details && (
-                                            <p className="text-xs text-default-400">{log.details}</p>
-                                        )}
-                                    </CardBody>
-                                </Card>
-                            ))}
-                        </div>
-
-                        {paginatedLogs.length === 0 && (
-                            <div className="text-center py-8 text-default-400">
-                                No logs found
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="px-6 pb-4 border-t border-default-200">
-                        {bottomContent}
-                    </div>
-                </CardBody>
-            </Card>
+            {/* Logs Table */}
+            <Table
+                aria-label="System logs table"
+                isHeaderSticky
+                bottomContent={bottomContent}
+                bottomContentPlacement="outside"
+                classNames={{
+                    wrapper: "max-h-[800px] border border-default-200 dark:border-default-100 shadow-sm bg-default-200",
+                }}
+                topContent={topContent}
+                topContentPlacement="outside"
+            >
+                <TableHeader columns={columns}>
+                    {(column) => (
+                        <TableColumn
+                            key={column.key}
+                            align={column.key === "actions" ? "center" : "start"}
+                        >
+                            {column.label}
+                        </TableColumn>
+                    )}
+                </TableHeader>
+                <TableBody
+                    emptyContent={isLoading ? " " : error ? "Failed to load logs" : "No logs found"}
+                    items={logs}
+                    isLoading={isLoading}
+                    loadingContent={<Spinner label="Loading logs..."/>}
+                >
+                    {(item) => (
+                        <TableRow key={item.id}>
+                            {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
         </div>
     );
 }

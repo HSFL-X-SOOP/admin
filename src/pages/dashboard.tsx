@@ -1,5 +1,4 @@
 import {Card, CardBody, CardHeader, CardFooter} from "@heroui/card";
-import {Button} from "@heroui/button";
 import {useSession} from "@/context/SessionContext";
 import {useNavigate} from "react-router-dom";
 import {useDashboard} from "@/hooks/useDashboard";
@@ -130,18 +129,17 @@ export default function DashboardPage() {
                                 </div>
                             </CardHeader>
                             <CardBody className="pt-0 pb-5">
-                                <p className="text-sm text-default-700 dark:text-default-700 mb-4">{action.description}</p>
+                                <p className="text-sm text-default-700 dark:text-default-700">{action.description}</p>
                             </CardBody>
                             <CardFooter className="pt-0 pb-3 w-full">
-                                <Button
-                                    size="sm"
-                                    color={action.color}
-                                    variant="flat"
-                                    className={"w-full" + (action.className ? ` ${action.className}` : "")}
-                                    onPress={action.action}
-                                >
+                                <div className={"w-full text-center text-sm font-medium py-1 px-3 rounded-lg " +
+                                    (action.className ? action.className :
+                                     action.color === "primary" ? "bg-primary-100 text-primary-600" :
+                                     action.color === "danger" ? "bg-danger-100 text-danger-600" :
+                                     action.color === "warning" ? "bg-warning-100 text-warning-600" :
+                                     "bg-default-100 text-default-600")}>
                                     Open →
-                                </Button>
+                                </div>
                             </CardFooter>
                         </Card>
                     ))}

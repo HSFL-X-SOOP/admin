@@ -18,8 +18,6 @@ export const useAuth = () => {
         try {
             const response = await authService.login(credentials);
 
-            console.log("Login response:", response);
-
             let role = response.profile?.authorityRole ?? AuthorityRole.USER;
             
             if (role !== AuthorityRole.ADMIN) {

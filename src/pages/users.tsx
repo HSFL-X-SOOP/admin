@@ -1,4 +1,4 @@
-import {useState, useCallback, useMemo} from "react";
+import {useState, useCallback, useMemo, useEffect} from "react";
 import type {Selection, Key} from "@react-types/shared";
 import {
     Table,
@@ -14,215 +14,139 @@ import {Tooltip} from "@heroui/tooltip";
 import {Pagination} from "@heroui/pagination";
 import {Input} from "@heroui/input";
 import {Button} from "@heroui/button";
+import {Card, CardBody} from "@heroui/card";
+import {Spinner} from "@heroui/spinner";
 import {SearchIcon} from "@/components/icons";
-import {AuthorityRole} from "@/api/models/auth";
 import {formatGermanDate, formatGermanDateOnly} from "@/utils/dateFormatter";
-
-interface UserData {
-    id: number;
-    name: string;
-    email: string;
-    role: AuthorityRole;
-    status: "active" | "inactive" | "pending";
-    avatar?: string;
-    joinDate: string;
-    lastLogin: string;
-}
-
-const mockUsers: UserData[] = [
-    {
-        id: 1,
-        name: "John Doe",
-        email: "john.doe@marlin-live.com",
-        role: AuthorityRole.ADMIN,
-        status: "active",
-        avatar: "https://i.pravatar.cc/150?u=john",
-        joinDate: "2024-01-15",
-        lastLogin: "2024-12-20 14:30"
-    },
-    {
-        id: 2,
-        name: "Jane Smith",
-        email: "jane.smith@marlin-live.com",
-        role: AuthorityRole.HARBOURMASTER,
-        status: "active",
-        avatar: "https://i.pravatar.cc/150?u=jane",
-        joinDate: "2024-02-20",
-        lastLogin: "2024-12-19 09:15"
-    },
-    {
-        id: 3,
-        name: "Bob Johnson",
-        email: "bob.johnson@example.com",
-        role: AuthorityRole.USER,
-        status: "inactive",
-        avatar: "https://i.pravatar.cc/150?u=bob",
-        joinDate: "2024-03-10",
-        lastLogin: "2024-11-05 16:45"
-    },
-    {
-        id: 4,
-        name: "Alice Brown",
-        email: "alice.brown@marlin-live.com",
-        role: AuthorityRole.ADMIN,
-        status: "active",
-        avatar: "https://i.pravatar.cc/150?u=alice",
-        joinDate: "2024-01-05",
-        lastLogin: "2024-12-20 10:20"
-    },
-    {
-        id: 5,
-        name: "Charlie Wilson",
-        email: "charlie.wilson@example.com",
-        role: AuthorityRole.USER,
-        status: "pending",
-        avatar: "https://i.pravatar.cc/150?u=charlie",
-        joinDate: "2024-06-12",
-        lastLogin: "2024-12-18 13:00"
-    },
-    {
-        id: 6,
-        name: "Emma Davis",
-        email: "emma.davis@marlin-live.com",
-        role: AuthorityRole.HARBOURMASTER,
-        status: "active",
-        avatar: "https://i.pravatar.cc/150?u=emma",
-        joinDate: "2024-04-08",
-        lastLogin: "2024-12-20 11:45"
-    },
-    {
-        id: 7,
-        name: "Frank Miller",
-        email: "frank.miller@example.com",
-        role: AuthorityRole.USER,
-        status: "active",
-        avatar: "https://i.pravatar.cc/150?u=frank",
-        joinDate: "2024-05-22",
-        lastLogin: "2024-12-19 15:30"
-    },
-    {
-        id: 8,
-        name: "Grace Lee",
-        email: "grace.lee@marlin-live.com",
-        role: AuthorityRole.ADMIN,
-        status: "active",
-        avatar: "https://i.pravatar.cc/150?u=grace",
-        joinDate: "2024-02-14",
-        lastLogin: "2024-12-20 08:00"
-    }
-];
+import {useUserProfiles} from "@/hooks/useUserProfiles";
+import {UserProfile, UserAuthorityRole} from "@/api/models/userProfiles";
 
 export default function UsersPage() {
     const [filterValue, setFilterValue] = useState("");
     const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
-    const [page, setPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [roleFilter, setRoleFilter] = useState("all");
+    const [roleFilter, setRoleFilter] = useState<UserAuthorityRole | "all">("all");
+    const [verifiedFilter, setVerifiedFilter] = useState<"all" | "verified" | "unverified">("all");
 
-    const filteredUsers = useMemo(() => {
-        let filtered = [...mockUsers];
+    // Use the custom hook with initial filters
+    const {
+        users,
+        totalCount,
+        filteredCount,
+        isLoading,
+        error,
+        page,
+        limit,
+        totalPages,
+        hasNextPage,
+        hasPrevPage,
+        searchUsers,
+        updateFilters,
+        goToPage,
+        nextPage,
+        prevPage,
+        changeLimit,
+        deleteUserProfile,
+        blockUser
+    } = useUserProfiles({
+        initialPage: 1,
+        initialLimit: 10,
+        initialFilters: {}
+    });
 
-        if (filterValue) {
-            filtered = filtered.filter((user) => {
-                const searchLower = filterValue.toLowerCase();
-                return (
-                    user.name.toLowerCase().includes(searchLower) ||
-                    user.email.toLowerCase().includes(searchLower)
-                );
-            });
-        }
-
-        if (statusFilter !== "all") {
-            filtered = filtered.filter((user) => user.status === statusFilter);
-        }
+    // Handle filter changes
+    useEffect(() => {
+        const filters: any = {};
 
         if (roleFilter !== "all") {
-            filtered = filtered.filter((user) => user.role === roleFilter);
+            filters.authorityRole = roleFilter;
         }
 
-        return filtered;
-    }, [filterValue, statusFilter, roleFilter]);
+        if (verifiedFilter !== "all") {
+            filters.verified = verifiedFilter === "verified";
+        }
 
-    const paginatedUsers = useMemo(() => {
-        const start = (page - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        return filteredUsers.slice(start, end);
-    }, [filteredUsers, page, rowsPerPage]);
-
-    const pages = Math.ceil(filteredUsers.length / rowsPerPage);
+        updateFilters(filters);
+    }, [roleFilter, verifiedFilter, updateFilters]);
 
     const onSearchChange = useCallback((value?: string) => {
-        if (value) {
-            setFilterValue(value);
-            setPage(1);
-        } else {
-            setFilterValue("");
-        }
-    }, []);
+        setFilterValue(value || "");
+        searchUsers(value || "");
+    }, [searchUsers]);
 
     const onClear = useCallback(() => {
         setFilterValue("");
-        setPage(1);
-    }, []);
+        searchUsers("");
+    }, [searchUsers]);
 
-    const renderCell = useCallback((user: UserData, columnKey: React.Key) => {
+    const renderCell = useCallback((user: UserProfile, columnKey: React.Key) => {
         switch (columnKey) {
             case "user":
+                const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email.split("@")[0];
                 return (
                     <User
-                        avatarProps={{radius: "full", size: "sm", src: user.avatar}}
+                        avatarProps={{radius: "full", size: "sm", src: `https://i.pravatar.cc/150?u=${user.email}`}}
                         classNames={{
                             description: "text-default-700"
                         }}
                         description={user.email}
-                        name={user.name}
+                        name={fullName}
                     />
                 );
             case "role":
                 const roleColor = {
-                    [AuthorityRole.ADMIN]: "danger",
-                    [AuthorityRole.HARBOURMASTER]: "warning",
-                    [AuthorityRole.USER]: "primary"
+                    [UserAuthorityRole.ADMIN]: "danger",
+                    [UserAuthorityRole.HARBOR_MASTER]: "warning",
+                    [UserAuthorityRole.USER]: "primary"
                 } as const;
 
                 return (
                     <Chip
                         className="capitalize"
-                        color={roleColor[user.role]}
+                        color={roleColor[user.authorityRole]}
                         size="sm"
                         variant="flat"
                     >
-                        {user.role}
+                        {user.authorityRole.replace("_", " ").toLowerCase()}
                     </Chip>
                 );
-            case "status":
-                const statusColorMap = {
-                    active: "success",
-                    inactive: "danger",
-                    pending: "warning"
-                } as const;
-
+            case "verified":
                 return (
                     <Chip
                         className="capitalize"
-                        color={statusColorMap[user.status]}
+                        color={user.verified ? "success" : "warning"}
                         size="sm"
                         variant="dot"
                     >
-                        {user.status}
+                        {user.verified ? "Verified" : "Unverified"}
                     </Chip>
+                );
+            case "activityRoles":
+                return (
+                    <div className="flex gap-1 flex-wrap">
+                        {user.activityRoles.map(role => (
+                            <Chip
+                                key={role}
+                                size="sm"
+                                variant="flat"
+                                color="default"
+                            >
+                                {role.toLowerCase()}
+                            </Chip>
+                        ))}
+                    </div>
                 );
             case "joinDate":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-bold text-sm text-default-800">{formatGermanDateOnly(user.joinDate)}</p>
+                        <p className="text-bold text-sm text-default-800">{formatGermanDateOnly(user.userCreatedAt)}</p>
                     </div>
                 );
-            case "lastLogin":
+            case "profileUpdated":
                 return (
                     <div className="flex flex-col">
-                        <p className="text-bold text-sm text-default-800">{formatGermanDate(user.lastLogin)}</p>
+                        <p className="text-bold text-sm text-default-800">
+                            {user.profileUpdatedAt ? formatGermanDate(user.profileUpdatedAt) : "-"}
+                        </p>
                     </div>
                 );
             case "actions":
@@ -238,8 +162,25 @@ export default function UsersPage() {
                                 ✏️
                             </Button>
                         </Tooltip>
+                        <Tooltip content="Block User">
+                            <Button
+                                size="sm"
+                                variant="light"
+                                color="warning"
+                                isIconOnly
+                                onPress={() => blockUser(user.id)}
+                            >
+                                🚫
+                            </Button>
+                        </Tooltip>
                         <Tooltip color="danger" content="Delete User">
-                            <Button size="sm" variant="light" color="danger" isIconOnly>
+                            <Button
+                                size="sm"
+                                variant="light"
+                                color="danger"
+                                isIconOnly
+                                onPress={() => deleteUserProfile(user.id)}
+                            >
                                 🗑️
                             </Button>
                         </Tooltip>
@@ -248,7 +189,7 @@ export default function UsersPage() {
             default:
                 return null;
         }
-    }, []);
+    }, [blockUser, deleteUserProfile]);
 
     const topContent = useMemo(() => {
         return (
@@ -257,7 +198,7 @@ export default function UsersPage() {
                     <Input
                         isClearable
                         className="w-full sm:max-w-[44%]"
-                        placeholder="Search by name or email..."
+                        placeholder="Search by email..."
                         startContent={<SearchIcon/>}
                         value={filterValue}
                         onClear={() => onClear()}
@@ -266,23 +207,22 @@ export default function UsersPage() {
                     <div className="flex gap-3">
                         <select
                             className="px-3 py-2 rounded-lg border border-default-200 text-sm"
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
+                            value={verifiedFilter}
+                            onChange={(e) => setVerifiedFilter(e.target.value as any)}
                         >
                             <option value="all">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="pending">Pending</option>
+                            <option value="verified">Verified</option>
+                            <option value="unverified">Unverified</option>
                         </select>
                         <select
                             className="px-3 py-2 rounded-lg border border-default-200 text-sm"
                             value={roleFilter}
-                            onChange={(e) => setRoleFilter(e.target.value)}
+                            onChange={(e) => setRoleFilter(e.target.value as any)}
                         >
                             <option value="all">All Roles</option>
-                            <option value={AuthorityRole.ADMIN}>Admin</option>
-                            <option value={AuthorityRole.HARBOURMASTER}>Harbor Master</option>
-                            <option value={AuthorityRole.USER}>User</option>
+                            <option value={UserAuthorityRole.ADMIN}>Admin</option>
+                            <option value={UserAuthorityRole.HARBOR_MASTER}>Harbor Master</option>
+                            <option value={UserAuthorityRole.USER}>User</option>
                         </select>
                         <Button color="primary" size="md">
                             Add User
@@ -291,31 +231,29 @@ export default function UsersPage() {
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-default-800 text-small">
-                        Total {filteredUsers.length} users
+                        Total {totalCount} users (showing {filteredCount})
                     </span>
                     <label className="flex items-center text-default-800 text-small">
                         Rows per page:
                         <select
                             className="bg-transparent outline-none text-default-800 text-small ml-2"
-                            onChange={(e) => {
-                                setRowsPerPage(Number(e.target.value));
-                                setPage(1);
-                            }}
-                            value={rowsPerPage}
+                            onChange={(e) => changeLimit(Number(e.target.value))}
+                            value={limit}
                         >
                             <option className="text-black" value="5">5</option>
                             <option className="text-black" value="10">10</option>
                             <option className="text-black" value="15">15</option>
+                            <option className="text-black" value="25">25</option>
                         </select>
                     </label>
                 </div>
             </div>
         );
-    }, [filterValue, onSearchChange, onClear, filteredUsers.length, rowsPerPage, statusFilter, roleFilter]);
+    }, [filterValue, onSearchChange, onClear, totalCount, filteredCount, limit, changeLimit, verifiedFilter, roleFilter]);
 
     const bottomContent = useMemo(() => {
-        const selectedCount = selectedKeys === "all" ? filteredUsers.length : selectedKeys.size;
-        const selectionMessage = selectedCount === 0 ? "" : `${selectedCount} of ${filteredUsers.length} selected`;
+        const selectedCount = selectedKeys === "all" ? filteredCount : selectedKeys.size;
+        const selectionMessage = selectedCount === 0 ? "" : `${selectedCount} of ${filteredCount} selected`;
 
         return (
             <div className="py-2 px-2 flex justify-between items-center">
@@ -326,41 +264,42 @@ export default function UsersPage() {
                     showShadow
                     color="primary"
                     page={page}
-                    total={pages || 1}
-                    onChange={setPage}
+                    total={totalPages || 1}
+                    onChange={goToPage}
                 />
                 <div className="hidden sm:flex w-[30%] justify-end gap-2">
                     <Button
-                        isDisabled={page === 1}
+                        isDisabled={!hasPrevPage}
                         size="sm"
                         color={"default"}
                         variant="flat"
                         className={"text-default-800 text-bold"}
-                        onPress={() => setPage(page - 1)}
+                        onPress={prevPage}
                     >
                         Previous
                     </Button>
                     <Button
-                        isDisabled={page === pages || pages === 0}
+                        isDisabled={!hasNextPage}
                         size="sm"
                         color={"primary"}
                         variant="flat"
                         className={"text-default-800 text-bold"}
-                        onPress={() => setPage(page + 1)}
+                        onPress={nextPage}
                     >
                         Next
                     </Button>
                 </div>
             </div>
         );
-    }, [page, pages, selectedKeys, filteredUsers.length]);
+    }, [page, totalPages, selectedKeys, filteredCount, goToPage, hasPrevPage, hasNextPage, prevPage, nextPage]);
 
     const columns = [
         {key: "user", label: "USER"},
-        {key: "role", label: "ROLE"},
-        {key: "status", label: "STATUS"},
+        {key: "role", label: "AUTHORITY ROLE"},
+        {key: "verified", label: "STATUS"},
+        {key: "activityRoles", label: "ACTIVITIES"},
         {key: "joinDate", label: "JOIN DATE"},
-        {key: "lastLogin", label: "LAST LOGIN"},
+        {key: "profileUpdated", label: "LAST UPDATED"},
         {key: "actions", label: "ACTIONS"}
     ];
 
@@ -372,6 +311,18 @@ export default function UsersPage() {
                     Manage system users and their permissions
                 </p>
             </div>
+
+            {/* Error Message */}
+            {error && !isLoading && (
+                <Card className="mb-6 border border-danger-200 bg-danger-50">
+                    <CardBody>
+                        <p className="text-danger-600">⚠️ {error}</p>
+                        <p className="text-sm text-default-600 mt-2">
+                            The user profiles API endpoint may not be available yet. Please check the backend implementation.
+                        </p>
+                    </CardBody>
+                </Card>
+            )}
 
             <Table
                 aria-label="Users table"
@@ -398,8 +349,10 @@ export default function UsersPage() {
                     )}
                 </TableHeader>
                 <TableBody
-                    emptyContent={"No users found"}
-                    items={paginatedUsers}
+                    emptyContent={isLoading ? " " : error ? "Failed to load users" : "No users found"}
+                    items={users}
+                    isLoading={isLoading}
+                    loadingContent={<Spinner label="Loading users..."/>}
                 >
                     {(item) => (
                         <TableRow key={item.id}>
