@@ -3,6 +3,7 @@ import LoginPage from "@/pages/login.tsx";
 import DashboardPage from "@/pages/dashboard.tsx";
 import SensorsPage from "@/pages/sensors.tsx";
 import UsersPage from "@/pages/users.tsx";
+import UserDetailPage from "@/pages/userDetail.tsx";
 import LogsPage from "@/pages/logs.tsx";
 import LocationsPage from "@/pages/locations.tsx";
 import SettingsPage from "@/pages/settings.tsx";
@@ -23,6 +24,7 @@ function App() {
                 <Route path="/sensors" element={<SensorsPage/>}/>
                 <Route path="/locations" element={<LocationsPage/>}/>
                 <Route path="/users" element={<UsersPage/>}/>
+                <Route path="/users/:userId" element={<UserDetailPage/>}/>
                 <Route path="/logs" element={<LogsPage/>}/>
                 <Route path="/settings" element={<SettingsPage/>}/>
             </Route>

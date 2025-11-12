@@ -23,8 +23,8 @@ const setSession = (session: any) => {
     }
 };
 
-const threeHoursMS = 3 * 60 * 60 * 1000;
-const toleranceMS = 60 * 1000;
+const fifteenMinutesMS = 15 * 60 * 1000;
+const toleranceMS = 60 * 1000; // Refresh 1 minute before expiry
 
 apiClient.interceptors.request.use(
     async (config) => {
@@ -35,7 +35,7 @@ apiClient.interceptors.request.use(
             const now = new Date();
             const age = now.getTime() - lastRefresh.getTime();
 
-            if (session.refreshToken && age >= (threeHoursMS - toleranceMS)) {
+            if (session.refreshToken && age >= (fifteenMinutesMS - toleranceMS)) {
                 try {
                     const refreshRequest: RefreshTokenRequest = {
                         refreshToken: session.refreshToken,
@@ -75,8 +75,11 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response?.status === 401) {
+            console.log('401 Unauthorized - logging out');
             setSession(null);
-            window.location.href = '/login';
+            if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+                window.location.href = '/';
+            }
         }
         return Promise.reject(error);
     }

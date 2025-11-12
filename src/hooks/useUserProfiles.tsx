@@ -68,6 +68,8 @@ export const useUserProfiles = (options?: UseUserProfilesOptions) => {
 
     // Load users when filters, page, or limit changes
     useEffect(() => {
+        let isCancelled = false;
+
         const loadData = async () => {
             try {
                 setIsLoading(true);
@@ -79,24 +81,34 @@ export const useUserProfiles = (options?: UseUserProfilesOptions) => {
                     limit
                 });
 
-                setUsers(response.items);
-                setTotalCount(response.totalCount);
-                setFilteredCount(response.filteredCount);
+                if (!isCancelled) {
+                    setUsers(response.items);
+                    setTotalCount(response.totalCount);
+                    setFilteredCount(response.filteredCount);
+                }
             } catch (error: any) {
-                const errorMessage = error.response?.data?.message || "Failed to load users";
-                console.error(errorMessage, error);
-                setError(errorMessage);
+                if (!isCancelled) {
+                    const errorMessage = error.response?.data?.message || "Failed to load users";
+                    console.error(errorMessage, error);
+                    setError(errorMessage);
 
-                // Set empty data on error
-                setUsers([]);
-                setTotalCount(0);
-                setFilteredCount(0);
+                    // Set empty data on error
+                    setUsers([]);
+                    setTotalCount(0);
+                    setFilteredCount(0);
+                }
             } finally {
-                setIsLoading(false);
+                if (!isCancelled) {
+                    setIsLoading(false);
+                }
             }
         };
 
         loadData();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [filters, page, limit]); // Only depend on actual data dependencies
 
     // Update user profile

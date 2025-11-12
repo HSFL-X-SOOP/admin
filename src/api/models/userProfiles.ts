@@ -1,5 +1,7 @@
 // User Profile related types based on API specification
 
+import {LocationDTO} from "@/api/models/locations.ts";
+
 export enum UserActivityRole {
     SWIMMER = "SWIMMER",
     SAILOR = "SAILOR",
@@ -28,6 +30,7 @@ export interface UserProfile {
     authorityRole: UserAuthorityRole;
     activityRoles: UserActivityRole[];
     userCreatedAt: string;
+    userUpdatedAt?: string | null;
     verified: boolean;
     firstName?: string | null;
     lastName?: string | null;
@@ -35,7 +38,11 @@ export interface UserProfile {
     measurementSystem?: MeasurementSystem | null;
     profileCreatedAt?: string | null;
     profileUpdatedAt?: string | null;
+    assignedLocation?: LocationDTO | null;
 }
+
+// Note: assignedLocation contains only the location ID
+// Use the locations service to fetch the location name
 
 export interface CreateUserProfileRequest {
     firstName?: string | null;
@@ -51,6 +58,15 @@ export interface UpdateUserProfileRequest {
     language?: Language | null;
     measurementSystem?: MeasurementSystem | null;
     roles?: UserActivityRole[] | null;
+}
+
+// New: Update user request (for admin to update user profile)
+export interface UpdateUserRequest {
+    userId: number;
+    firstName?: string | null;
+    lastName?: string | null;
+    authorityRole: UserAuthorityRole;
+    verified: boolean;
 }
 
 export interface UserProfilesResponse {

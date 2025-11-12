@@ -1,4 +1,5 @@
 import {useState, useCallback, useMemo, useEffect} from "react";
+import {useNavigate} from "react-router-dom";
 import type {Selection, Key} from "@react-types/shared";
 import {
     Table,
@@ -16,16 +17,37 @@ import {Input} from "@heroui/input";
 import {Button} from "@heroui/button";
 import {Card, CardBody} from "@heroui/card";
 import {Spinner} from "@heroui/spinner";
-import {SearchIcon} from "@/components/icons";
+import {
+    Modal,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    useDisclosure
+} from "@heroui/modal";
+import {SearchIcon, EyeFilledIcon, EyeSlashFilledIcon} from "@/components/icons";
 import {formatGermanDate, formatGermanDateOnly} from "@/utils/dateFormatter";
 import {useUserProfiles} from "@/hooks/useUserProfiles";
 import {UserProfile, UserAuthorityRole} from "@/api/models/userProfiles";
+import {useToast} from "@/hooks/useToast";
+import authService from "@/api/services/auth";
 
 export default function UsersPage() {
+    const navigate = useNavigate();
+    const toast = useToast();
     const [filterValue, setFilterValue] = useState("");
     const [selectedKeys, setSelectedKeys] = useState<Selection>(new Set<Key>());
     const [roleFilter, setRoleFilter] = useState<UserAuthorityRole | "all">("all");
     const [verifiedFilter, setVerifiedFilter] = useState<"all" | "verified" | "unverified">("all");
+
+    // Add User Modal state
+    const {isOpen: isAddUserOpen, onOpen: onAddUserOpen, onClose: onAddUserClose} = useDisclosure();
+    const [newUserEmail, setNewUserEmail] = useState("");
+    const [newUserPassword, setNewUserPassword] = useState("");
+    const [newUserPasswordRepeat, setNewUserPasswordRepeat] = useState("");
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isPasswordRepeatVisible, setIsPasswordRepeatVisible] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     // Use the custom hook with initial filters
     const {
@@ -77,6 +99,52 @@ export default function UsersPage() {
         setFilterValue("");
         searchUsers("");
     }, [searchUsers]);
+
+    // Handle add user
+    const handleAddUser = useCallback(async () => {
+        // Validation
+        if (!newUserEmail || !newUserPassword) {
+            toast.showError("Email and password are required");
+            return;
+        }
+
+        if (newUserPassword !== newUserPasswordRepeat) {
+            toast.showError("Passwords do not match");
+            return;
+        }
+
+        if (newUserPassword.length < 6) {
+            toast.showError("Password must be at least 6 characters long");
+            return;
+        }
+
+        try {
+            setIsCreating(true);
+            await authService.createUser({
+                email: newUserEmail,
+                password: newUserPassword,
+                rememberMe: false
+            });
+
+            toast.showSuccess(`User ${newUserEmail} created successfully`);
+
+            // Reset form
+            setNewUserEmail("");
+            setNewUserPassword("");
+            setNewUserPasswordRepeat("");
+            onAddUserClose();
+
+            // Reload users list - give backend time to process
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || "Failed to create user";
+            toast.showError(errorMessage);
+        } finally {
+            setIsCreating(false);
+        }
+    }, [newUserEmail, newUserPassword, newUserPasswordRepeat, toast, onAddUserClose]);
 
     const renderCell = useCallback((user: UserProfile, columnKey: React.Key) => {
         switch (columnKey) {
@@ -153,12 +221,22 @@ export default function UsersPage() {
                 return (
                     <div className="flex items-center justify-center gap-2">
                         <Tooltip content="View Details">
-                            <Button size="sm" variant="light" isIconOnly>
+                            <Button
+                                size="sm"
+                                variant="light"
+                                isIconOnly
+                                onPress={() => navigate(`/users/${user.id}`)}
+                            >
                                 👁️
                             </Button>
                         </Tooltip>
                         <Tooltip content="Edit User">
-                            <Button size="sm" variant="light" isIconOnly>
+                            <Button
+                                size="sm"
+                                variant="light"
+                                isIconOnly
+                                onPress={() => navigate(`/users/${user.id}`)}
+                            >
                                 ✏️
                             </Button>
                         </Tooltip>
@@ -189,7 +267,7 @@ export default function UsersPage() {
             default:
                 return null;
         }
-    }, [blockUser, deleteUserProfile]);
+    }, [navigate, blockUser, deleteUserProfile]);
 
     const topContent = useMemo(() => {
         return (
@@ -224,7 +302,7 @@ export default function UsersPage() {
                             <option value={UserAuthorityRole.HARBOR_MASTER}>Harbor Master</option>
                             <option value={UserAuthorityRole.USER}>User</option>
                         </select>
-                        <Button color="primary" size="md">
+                        <Button color="primary" size="md" onPress={onAddUserOpen}>
                             Add User
                         </Button>
                     </div>
@@ -318,7 +396,8 @@ export default function UsersPage() {
                     <CardBody>
                         <p className="text-danger-600">⚠️ {error}</p>
                         <p className="text-sm text-default-600 mt-2">
-                            The user profiles API endpoint may not be available yet. Please check the backend implementation.
+                            The user profiles API endpoint may not be available yet. Please check the backend
+                            implementation.
                         </p>
                     </CardBody>
                 </Card>
@@ -361,6 +440,101 @@ export default function UsersPage() {
                     )}
                 </TableBody>
             </Table>
+
+            {/* Add User Modal */}
+            <Modal isOpen={isAddUserOpen} onClose={onAddUserClose} size="lg">
+                <ModalContent>
+                    {(onClose) => (
+                        <>
+                            <ModalHeader className="flex flex-col gap-1">
+                                Add New User
+                            </ModalHeader>
+                            <ModalBody>
+                                <p className="text-sm text-default-700 mb-4">
+                                    Create a new user account. The user can update their profile information after
+                                    logging in.
+                                </p>
+                                <div className="flex flex-col gap-4">
+                                    <Input
+                                        label="Email"
+                                        placeholder="Enter email address"
+                                        variant={"bordered"}
+                                        color={"default"}
+                                        type="email"
+                                        value={newUserEmail}
+                                        onChange={(e) => setNewUserEmail(e.target.value)}
+                                        isRequired
+                                    />
+                                    <Input
+                                        label="Password"
+                                        placeholder="Enter password (min. 6 characters)"
+                                        variant={"bordered"}
+                                        color={"default"}
+                                        type={isPasswordVisible ? "text" : "password"}
+                                        value={newUserPassword}
+                                        onChange={(e) => setNewUserPassword(e.target.value)}
+                                        isRequired
+                                        endContent={
+                                            <button
+                                                aria-label="toggle password visibility"
+                                                className="focus:outline-solid outline-transparent"
+                                                type="button"
+                                                onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                                            >
+                                                {isPasswordVisible ? (
+                                                    <EyeSlashFilledIcon
+                                                        className="text-2xl text-default-400 pointer-events-none"/>
+                                                ) : (
+                                                    <EyeFilledIcon
+                                                        className="text-2xl text-default-400 pointer-events-none"/>
+                                                )}
+                                            </button>
+                                        }
+                                    />
+                                    <Input
+                                        label="Repeat Password"
+                                        placeholder="Repeat password"
+                                        variant={"bordered"}
+                                        color={"default"}
+                                        type={isPasswordRepeatVisible ? "text" : "password"}
+                                        value={newUserPasswordRepeat}
+                                        onChange={(e) => setNewUserPasswordRepeat(e.target.value)}
+                                        isRequired
+                                        endContent={
+                                            <button
+                                                aria-label="toggle password visibility"
+                                                className="focus:outline-solid outline-transparent"
+                                                type="button"
+                                                onClick={() => setIsPasswordRepeatVisible(!isPasswordRepeatVisible)}
+                                            >
+                                                {isPasswordRepeatVisible ? (
+                                                    <EyeSlashFilledIcon
+                                                        className="text-2xl text-default-400 pointer-events-none"/>
+                                                ) : (
+                                                    <EyeFilledIcon
+                                                        className="text-2xl text-default-400 pointer-events-none"/>
+                                                )}
+                                            </button>
+                                        }
+                                    />
+                                </div>
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button color="default" variant="light" onPress={onClose}>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    onPress={handleAddUser}
+                                    isLoading={isCreating}
+                                >
+                                    Create User
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
         </div>
     );
 }

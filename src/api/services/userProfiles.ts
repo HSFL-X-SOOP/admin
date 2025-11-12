@@ -4,6 +4,7 @@ import {
     UserProfilesResponse,
     CreateUserProfileRequest,
     UpdateUserProfileRequest,
+    UpdateUserRequest,
     UserProfileFilters
 } from '../models/userProfiles';
 
@@ -62,6 +63,13 @@ class UserProfilesService {
     }
 
     /**
+     * Update user authority role and verification status (Admin only)
+     */
+    async updateUser(data: UpdateUserRequest): Promise<void> {
+        await apiClient.put(`/admin/user-profiles`, data);
+    }
+
+    /**
      * Delete a user's profile by user ID (Admin only)
      */
     async deleteUserProfile(userId: number): Promise<void> {
@@ -82,6 +90,13 @@ class UserProfilesService {
     async blockUser(userId: number): Promise<string> {
         const response = await apiClient.post<string>('/admin/user-profiles/block', { userId });
         return response.data;
+    }
+
+    /**
+     * Assign a location to a harbor master (Admin only)
+     */
+    async assignLocation(userId: number, locationId: number): Promise<void> {
+        await apiClient.post('/admin/assignLocation', { userId, locationId });
     }
 
     /**

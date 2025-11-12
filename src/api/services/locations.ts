@@ -1,5 +1,5 @@
 import apiClient from '../client';
-import { LocationDTO, DetailedLocationDTO, UpdateLocationRequest } from '../models/locations';
+import { LocationDTO, DetailedLocationDTO, UpdateLocationRequest, AssignHarborMasterRequest } from '../models/locations';
 
 class LocationsService {
     async getLocations(): Promise<LocationDTO[]> {
@@ -19,6 +19,10 @@ class LocationsService {
 
     async deleteLocationImage(id: number): Promise<void> {
         await apiClient.delete(`/location/${id}/image`);
+    }
+
+    async assignHarborMaster(request: AssignHarborMasterRequest): Promise<void> {
+        await apiClient.post('/admin/assignLocation', request);
     }
 }
 

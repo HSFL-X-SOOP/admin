@@ -79,6 +79,8 @@ export const useLogs = (options?: UseLogsOptions) => {
 
     // Load logs when filters, page, or limit changes
     useEffect(() => {
+        let isCancelled = false;
+
         const loadData = async () => {
             try {
                 setIsLoading(true);
@@ -90,29 +92,34 @@ export const useLogs = (options?: UseLogsOptions) => {
                     limit
                 });
 
-                setLogs(response.items);
-                setTotalCount(response.totalCount);
-                setFilteredCount(response.filteredCount);
-            } catch (error: any) {
-                const errorMessage = error.response?.data?.message || "Failed to load logs";
-                console.error(errorMessage, error);
-                setError(errorMessage);
-
-                // Only show error toast on initial load or explicit refresh
-                if (logs.length === 0) {
-                    toast.showError(errorMessage);
+                if (!isCancelled) {
+                    setLogs(response.items);
+                    setTotalCount(response.totalCount);
+                    setFilteredCount(response.filteredCount);
                 }
+            } catch (error: any) {
+                if (!isCancelled) {
+                    const errorMessage = error.response?.data?.message || "Failed to load logs";
+                    console.error(errorMessage, error);
+                    setError(errorMessage);
 
-                // Return empty data on error
-                setLogs([]);
-                setTotalCount(0);
-                setFilteredCount(0);
+                    // Return empty data on error
+                    setLogs([]);
+                    setTotalCount(0);
+                    setFilteredCount(0);
+                }
             } finally {
-                setIsLoading(false);
+                if (!isCancelled) {
+                    setIsLoading(false);
+                }
             }
         };
 
         loadData();
+
+        return () => {
+            isCancelled = true;
+        };
     }, [filters, page, limit]); // Remove toast and logs.length from dependencies
 
     // Load services on mount

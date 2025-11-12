@@ -4,6 +4,12 @@ export interface LoginRequest {
     rememberMe: boolean;
 }
 
+export interface RegisterRequest {
+    email: string;
+    password: string;
+    rememberMe: boolean;
+}
+
 export interface RefreshTokenRequest {
     refreshToken: string;
 }

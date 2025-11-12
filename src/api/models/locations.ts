@@ -26,3 +26,8 @@ export interface UpdateLocationRequest {
     openingTime?: string | null;
     closingTime?: string | null;
 }
+
+export interface AssignHarborMasterRequest {
+    userId: number;
+    locationId: number;
+}
